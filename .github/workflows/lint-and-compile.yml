@@ -1,0 +1,19 @@
+name: Lint and Compile
+on: push
+jobs:
+  lint-and-compile:
+    name: Lint and Compile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: ClangFormat
+        uses: DoozyX/clang-format-lint-action@v0.18.2
+      - name: ClangTidy
+        uses: ZedThree/clang-tidy-review@v0.20.1
+        id: review
+        with:
+          config_file: '.clang-tidy'
+          cmake_command: cmake --preset common -DCMAKE_C_COMPILER=clang-20
+      - if: steps.review.outputs.total_comments > 0
+        run: exit 1

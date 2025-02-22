@@ -1,0 +1,14 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "local",
+      "inherits": [
+        "common"
+      ],
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": ""
+      }
+    }
+  ]
+}

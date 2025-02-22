@@ -1,0 +1,46 @@
+#!/bin/env sh
+
+set -eux
+
+# Prerequisites
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get install -y \
+build-essential \
+ninja-build \
+python3 \
+wget
+
+test -f /usr/share/doc/kitware-archive-keyring/copyright || \
+wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
+test -f /usr/share/doc/kitware-archive-keyring/copyright || \
+rm /usr/share/keyrings/kitware-archive-keyring.gpg
+
+sudo apt-get update
+sudo apt-get install -y \
+kitware-archive-keyring \
+cmake
+
+# Set up target directory
+install_prefix="$HOME/code/llvm-mos-dist"
+mkdir -p "$install_prefix"
+
+# LLVM MOS
+cd ~/code/ || exit
+git clone https://github.com/llvm-mos/llvm-mos.git
+cd llvm-mos/ || exit
+cmake -C clang/cmake/caches/MOS.cmake -G Ninja -S llvm -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$install_prefix"
+cmake --build build -j 5 -t distribution
+cmake --build build -j 5 -t install
+
+# LLVM MOS SDK
+cd ~/code/ || exit
+git clone https://github.com/llvm-mos/llvm-mos-sdk
+cd llvm-mos-sdk/ || exit
+cmake -G Ninja -B build -DCMAKE_INSTALL_PREFIX="$install_prefix" -DLLVM_MOS="$install_prefix/bin/"
+cmake --build build -j 5 -t install
+
+# Cleanup
+cd ~/code/ || exit
+rm -rf llvm-mos/ llvm-mos-sdk/
