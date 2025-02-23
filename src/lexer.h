@@ -1,21 +1,25 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+enum {
+  kTokenTextBufferSize = 100,
+};
+
 typedef enum TokenType {
-  NUMBER,
-  PLUS,
-  MINUS,
-  MULTIPLICATION,
-  DIVISION,
-  ASSIGNMENT,
-  SEMICOLON,
-  PRINT
+  kNumber,
+  kPlus,
+  kMinus,
+  kMultiplication,
+  kDivision,
+  kAssignment,
+  kSemicolon,
+  kPrint
 } TokenType;
 
 typedef struct Token {
-  TokenType tokenType;
+  TokenType token_type;
   int value;
-  char text[100];
+  char text[kTokenTextBufferSize];
 } Token;
 
 #endif  // LEXER_H

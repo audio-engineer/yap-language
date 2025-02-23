@@ -20,19 +20,19 @@ int main() {
     buffer_end_index = 0;
 
     while (true) {
-      const int input = getchar();
+      const int kInput = getchar();
 
-      if (EOF == input) {
+      if (EOF == kInput) {
         break;
       }
 
-      putchar(input);
+      putchar(kInput);
 
-      if ('\n' == input) {
+      if ('\n' == kInput) {
         break;
       }
 
-      buffer[buffer_end_index++] = input;
+      buffer[buffer_end_index++] = kInput;
       buffer[buffer_end_index] = 0;
 
       if (buffer_end_index == sizeof(buffer) - 1) {
