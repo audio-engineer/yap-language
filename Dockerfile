@@ -46,4 +46,5 @@ RUN set -eux; \
     git clone https://github.com/llvm-mos/llvm-mos-sdk; \
     cd llvm-mos-sdk/; \
     cmake -G Ninja -B build -DCMAKE_INSTALL_PREFIX=/usr/local/ -DLLVM_MOS=/usr/local/bin/; \
-    cmake --build build -j 5 -t install;
+    cmake --build build -j 5 -t install; \
+    rm -rf ~/llvm-mos ~/llvm-mos-sdk;
