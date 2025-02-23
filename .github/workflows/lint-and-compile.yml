@@ -1,19 +1,36 @@
 name: Lint and Compile
-on: push
+on: pull_request
 jobs:
   lint-and-compile:
     name: Lint and Compile
     runs-on: ubuntu-latest
     steps:
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
       - name: Checkout
         uses: actions/checkout@v4
-      - name: ClangFormat
+      - name: Get LLVM-MOS SDK
+        run: |
+          wget https://github.com/llvm-mos/llvm-mos-sdk/releases/latest/download/llvm-mos-linux.tar.xz
+          tar xf llvm-mos-linux.tar.xz
+          echo "CMAKE_PREFIX_PATH=$PWD/llvm-mos" >> "$GITHUB_ENV"
+      - name: Run ClangFormat
         uses: DoozyX/clang-format-lint-action@v0.18.2
-      - name: ClangTidy
-        uses: ZedThree/clang-tidy-review@v0.20.1
-        id: review
         with:
-          config_file: '.clang-tidy'
-          cmake_command: cmake --preset common -DCMAKE_C_COMPILER=clang-20
-      - if: steps.review.outputs.total_comments > 0
-        run: exit 1
+          source: src
+      - name: Configure and Build
+        run: |
+          cmake --preset common
+          cmake --build build
+      - name: Run ClangTidy
+        run: |
+          ./llvm-mos/bin/clang-tidy --config-file .clang-tidy -p build src/*
+      - name: Set Environment Variables
+        run: echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+      - name: Upload Executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
+          path: build/yap-lang.prg
