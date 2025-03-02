@@ -3,9 +3,7 @@
   "configurePresets": [
     {
       "name": "local",
-      "inherits": [
-        "common"
-      ],
+      "inherits": "common",
       "cacheVariables": {
         "CMAKE_PREFIX_PATH": ""
       }
