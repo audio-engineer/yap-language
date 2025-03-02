@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "parser.h"
+
 enum Constants { kBufferSize = 81, kClearScreen = 147 };
 
 int main() {
@@ -12,7 +14,7 @@ int main() {
 
   int buffer_end_index = 0;
   static const char* const kExitToken = "run";
-  const unsigned char kExitTokenLen = strlen(kExitToken);
+  const unsigned int kExitTokenLen = strlen(kExitToken);
 
   while (true) {
     putchar('>');
@@ -20,19 +22,17 @@ int main() {
     buffer_end_index = 0;
 
     while (true) {
-      const int kInput = getchar();
+      const int kInputCharacter = getchar();
 
-      if (EOF == kInput) {
+      if (EOF == kInputCharacter) {
         break;
       }
 
-      putchar(kInput);
-
-      if ('\n' == kInput) {
+      if ('\n' == kInputCharacter) {
         break;
       }
 
-      buffer[buffer_end_index++] = kInput;
+      buffer[buffer_end_index++] = (char)kInputCharacter;
       buffer[buffer_end_index] = 0;
 
       if (buffer_end_index == sizeof(buffer) - 1) {
@@ -44,6 +44,8 @@ int main() {
         strncmp(kExitToken, buffer, kExitTokenLen) == 0) {
       break;
     }
+
+    ParseProgram(buffer);
   }
 
   return EXIT_SUCCESS;
