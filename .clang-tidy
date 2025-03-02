@@ -9,6 +9,17 @@ modernize-*,
 performance-*,
 portability-*,
 readability-*'
+WarningsAsErrors: '-*,
+bugprone-*,
+clang-analyzer-*,
+concurrency-*,
+cppcoreguidelines-*,
+google-*,
+misc-*,
+modernize-*,
+performance-*,
+portability-*,
+readability-*'
 FormatStyle: file
 CheckOptions:
   concurrency-mt-unsafe.FunctionSet: posix
