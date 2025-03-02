@@ -28,9 +28,13 @@ jobs:
         run: |
           ./llvm-mos/bin/clang-tidy --config-file .clang-tidy -p build src/*
       - name: Set Environment Variables
-        run: echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+        run: |
+          echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+      - name: Rename Executable
+        run: |
+          sudo mv build/yap-lang.prg build/yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
       - name: Upload Executable
         uses: actions/upload-artifact@v4
         with:
           name: yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
-          path: build/yap-lang.prg
+          path: build/yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
