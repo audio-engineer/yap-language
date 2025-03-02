@@ -162,4 +162,5 @@ Temporary Items
 
 ### Added by the team
 CMakeUserPresets.json
-build
+build/
+.cache/
