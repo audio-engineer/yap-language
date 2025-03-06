@@ -22,7 +22,7 @@ jobs:
           source: src
       - name: Configure and Build
         run: |
-          cmake --preset common
+          cmake -DCMAKE_BUILD_TYPE=Release --preset common-commodore -B build
           cmake --build build
       - name: Run ClangTidy
         run: |

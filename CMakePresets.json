@@ -6,13 +6,56 @@
   },
   "configurePresets": [
     {
-      "name": "common",
-      "displayName": "Common",
-      "generator": "Ninja",
-      "binaryDir": "build",
+      "name": "common-all",
+      "generator": "Ninja"
+    },
+    {
+      "name": "common-commodore",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
+        "COMMODORE": "ON",
         "CMAKE_TOOLCHAIN_FILE": "toolchain.cmake"
+      }
+    },
+    {
+      "name": "native-debug",
+      "displayName": "Native Debug",
+      "inherits": "common-all",
+      "binaryDir": "build-native-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "native-release",
+      "displayName": "Native Release",
+      "inherits": "common-all",
+      "binaryDir": "build-native-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "c128-debug",
+      "displayName": "C128 Debug",
+      "inherits": [
+        "common-all",
+        "common-commodore"
+      ],
+      "binaryDir": "build-c128-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "c128-release",
+      "displayName": "C128 Release",
+      "inherits": [
+        "common-all",
+        "common-commodore"
+      ],
+      "binaryDir": "build-c128-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   ]

@@ -3,18 +3,31 @@
 #include <string.h>
 
 #include "parser.h"
+#include "vm.h"
 
-enum Constants { kBufferSize = 81, kClearScreen = 147 };
+static constexpr int kInputBufferSize = 81;
+
+void PrintHelp() {
+  printf("Usage:\n");
+  printf("run   Run your program.\n");
+  printf("ops   Print opcodes currently in buffer.\n");
+  printf("exit  Exit the interpreter.\n");
+  printf("help  Show this message.\n");
+}
 
 int main() {
+#ifdef COMMODORE
+  static constexpr int kClearScreen = 147;
+
   printf("%c", kClearScreen);
+#endif
+
   printf("Welcome to the Yap Language!\n");
+  printf("\n");
+  printf("Run 'help' to see a list of commands.\n");
 
-  static char buffer[kBufferSize];
-
-  int buffer_end_index = 0;
-  static const char* const kExitToken = "run";
-  const unsigned int kExitTokenLen = strlen(kExitToken);
+  static char input_buffer[kInputBufferSize];
+  static int buffer_end_index = 0;
 
   while (true) {
     putchar('>');
@@ -32,21 +45,50 @@ int main() {
         break;
       }
 
-      buffer[buffer_end_index++] = (char)kInputCharacter;
-      buffer[buffer_end_index] = 0;
+      input_buffer[buffer_end_index++] = (char)kInputCharacter;
+      input_buffer[buffer_end_index] = 0;
 
-      if (buffer_end_index == sizeof(buffer) - 1) {
+      if (buffer_end_index == sizeof(input_buffer) - 1) {
         break;
       }
     }
 
-    if (buffer_end_index >= kExitTokenLen &&
-        strncmp(kExitToken, buffer, kExitTokenLen) == 0) {
+    if (0 == strncmp("exit", input_buffer, 4)) {
       break;
     }
 
-    ParseProgram(buffer);
+    if (0 == strncmp("help", input_buffer, 4)) {
+      PrintHelp();
+
+      continue;
+    }
+
+    if (0 == strncmp("ops", input_buffer, 3)) {
+      PrintOpcodes();
+
+      continue;
+    }
+
+    if (0 == strncmp("run", input_buffer, 3)) {
+      // If the program hasn't been run before, add halt opcode
+      if (kOpHalt != opcodes[opcode_index - 1]) {
+        EmitByte(kOpHalt);
+      }
+
+      RunVm();
+
+      continue;
+    }
+
+    // If the program has been run before, remove halt opcode
+    if (kOpHalt == opcodes[opcode_index - 1]) {
+      opcodes[opcode_index--] = 0;
+    }
+
+    ParseProgram(input_buffer);
   }
+
+  printf("Bye!\n");
 
   return EXIT_SUCCESS;
 }

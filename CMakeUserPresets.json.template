@@ -2,8 +2,33 @@
   "version": 6,
   "configurePresets": [
     {
-      "name": "local",
-      "inherits": "common",
+      "name": "native-debug-local",
+      "displayName": "Native Debug Local",
+      "inherits": "native-debug",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": ""
+      }
+    },
+    {
+      "name": "native-release-local",
+      "displayName": "Native Release Local",
+      "inherits": "native-release",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": ""
+      }
+    },
+    {
+      "name": "c128-debug-local",
+      "displayName": "C128 Debug Local",
+      "inherits": "c128-debug",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": ""
+      }
+    },
+    {
+      "name": "c128-release-local",
+      "displayName": "C128 Release Local",
+      "inherits": "c128-release",
       "cacheVariables": {
         "CMAKE_PREFIX_PATH": ""
       }
