@@ -3,6 +3,8 @@
 
 #ifdef COMMODORE
 #include <stddef.h>
+#elif __linux__
+#include <stddef.h>
 #elif __APPLE__
 #include <sys/_types/_size_t.h>
 #endif
