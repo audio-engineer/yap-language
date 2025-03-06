@@ -1,63 +1,166 @@
 #include "parser.h"
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "lexer.h"
+#include "vm.h"
 
-char* ParseString() {
-  if (kQuotationMark != token.type) {
-    return nullptr;
-  }
+// static void ParseTerm();
+static void ParseNumber();
 
-  char* const kValue = calloc(100, sizeof(char));
-  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-  strncpy(kValue, token.text, strlen(token.text));
+static void ParseExpression() {
+  ParseNumber();
 
-  return kValue;
-}
+  ConsumeNextToken();
 
-void ParseStatement() {
-  if (kPrint == token.type) {
+  while (kTokenPlus == token.type || kTokenMinus == token.type) {
+    const TokenType kOperation = token.type;
+
     ConsumeNextToken();
 
-    if (kLeftParenthesis == token.type) {
-      ConsumeNextToken();
+    ParseNumber();
 
-      char* const kValue = ParseString();
-      ConsumeNextToken();
-
-      if (kRightParenthesis == token.type) {
-        ConsumeNextToken();
-      } else {
-        free(kValue);
-
-        printf("Expected ')' but got token type '%d'\n", (int)token.type);
-
-        return;
-      }
-
-      printf("%s\n", kValue);
-
-      free(kValue);
-
-      return;
+    if (kTokenPlus == kOperation) {
+      EmitByte(kOpAdd);
     }
 
+    if (kTokenMinus == kOperation) {
+      EmitByte(kOpSubtract);
+    }
+  }
+}
+
+// static void ParseTerm() {
+//   ParseNumber();
+//
+//   while (kTokenStar == token.type || kTokenSlash == token.type) {
+//     const TokenType kOperation = token.type;
+//
+//     ConsumeNextToken();
+//
+//     ParseNumber();
+//
+//     ConsumeNextToken();
+//
+//     if (kTokenStar == kOperation) {
+//       EmitByte(kOpMultiply);
+//     }
+//
+//     if (kTokenSlash == kOperation) {
+//       EmitByte(kOpDivide);
+//     }
+//   }
+// }
+
+/**
+ * Grammar:
+ * factor -> number
+ * | '(' expression ')'
+ */
+static void ParseNumber() {
+  if (kTokenNumber == token.type) {
+    const long kNumber = token.value;
+
+    const size_t kIndex = AddNumberConstant(kNumber);
+
+    EmitByte(kOpConstant);
+    EmitByte(kIndex);
+  }
+
+  // ParseExpression();
+}
+
+static void ParseString() {
+  if (kTokenQuotationMark != token.type) {
+    return;
+  }
+
+  const size_t kStringIndex = AddStringConstant(token.text);
+
+  EmitByte(kOpConstant);
+  EmitByte(kStringIndex);
+}
+
+/**
+ * Grammar: print(expression)
+ */
+static void ParsePrintStatement() {
+  ConsumeNextToken();
+
+  if (kTokenLeftParenthesis != token.type) {
     printf("Expected '(' but got token type '%d'\n", (int)token.type);
 
     return;
   }
 
-  printf("Unregistered statement '%s'\n", token.text);
+  ConsumeNextToken();
+
+  if (kTokenQuotationMark != token.type) {
+    ParseExpression();
+  } else {
+    ParseString();
+  }
+
+  ConsumeNextToken();
+
+  if (kTokenRightParenthesis != token.type) {
+    printf("Expected ')' but got token type '%d'\n", (int)token.type);
+
+    return;
+  }
+
+  ConsumeNextToken();
+
+  EmitByte(kOpPrint);
+}
+
+/**
+ * Grammar: if(expression) statement* endif
+ */
+static void ParseIfStatement() {
+  ConsumeNextToken();
+
+  if (kTokenLeftParenthesis != token.type) {
+    printf("Expected '(' but got token type '%d'\n", (int)token.type);
+
+    return;
+  }
+
+  ConsumeNextToken();
+
+  if (kTokenRightParenthesis != token.type) {
+    printf("Expected ')' but got token type '%d'\n", (int)token.type);
+
+    return;
+  }
+
+  ConsumeNextToken();
+
+  EmitByte(kOpIf);
+}
+
+static void ParseStatement() {
+  switch (token.type) {
+    case kTokenPrint:
+      ParsePrintStatement();
+
+      break;
+    case kTokenIf:
+      ParseIfStatement();
+
+      break;
+    default:
+      printf("Unregistered statement '%s'\n", token.text);
+
+      token.type = kTokenEof;
+  }
 }
 
 void ParseProgram(const char* const source_code_parameter) {
   source_code = source_code_parameter;
   ConsumeNextToken();
 
-  while (kEOF != token.type) {
+  while (kTokenEof != token.type) {
     ParseStatement();
   }
 }

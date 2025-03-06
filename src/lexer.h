@@ -1,30 +1,29 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-enum {
-  kTokenTextBufferSize = 100,
-};
-
 typedef enum TokenType {
-  kEOF,
-  kId,
-  kNumber,
-  kPlus,
-  kMinus,
-  kStar,
-  kSlash,
-  kAssignment,
-  kSemicolon,
-  kLeftParenthesis,
-  kRightParenthesis,
-  kQuotationMark,
-  kIf,
-  kPrint
+  kTokenEof,
+  kTokenId,
+  kTokenNumber,
+  kTokenPlus,
+  kTokenMinus,
+  kTokenStar,
+  kTokenSlash,
+  kTokenEquals,
+  kTokenLeftParenthesis,
+  kTokenRightParenthesis,
+  kTokenQuotationMark,
+  kTokenIf,
+  kTokenFor,
+  kTokenEndfor,
+  kTokenPrint
 } TokenType;
+
+static constexpr int kTokenTextBufferSize = 100;
 
 typedef struct Token {
   TokenType type;
-  int value;
+  long value;
   char text[kTokenTextBufferSize];
 } Token;
 
@@ -33,6 +32,9 @@ extern const char* source_code;
 extern Token token;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
+/**
+ * Parse tokens.
+ */
 void ConsumeNextToken();
 
 #endif  // LEXER_H

@@ -1,6 +1,8 @@
 #include "lexer.h"
 
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
@@ -8,18 +10,31 @@ const char* source_code = nullptr;
 Token token;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
-void SkipWhitespace() {
+typedef struct KeywordEntry {
+  const char* const kText;
+  const TokenType kType;
+} KeywordEntry;
+
+static const KeywordEntry kKeywordMap[] = {{"print", kTokenPrint},
+                                           {"if", kTokenIf},
+                                           {"for", kTokenFor},
+                                           {"endfor", kTokenEndfor}};
+
+static constexpr size_t kKeywordCount =
+    sizeof(kKeywordMap) / sizeof(KeywordEntry);
+
+static void SkipWhitespace() {
   while (*source_code && isspace(*source_code)) {
     source_code++;
   }
 }
 
-bool IsQuotationMark() {
+static bool IsQuotationMark() {
   if ('"' != *source_code) {
     return false;
   }
 
-  token.type = kQuotationMark;
+  token.type = kTokenQuotationMark;
   source_code++;
 
   int length = 0;
@@ -41,29 +56,35 @@ bool IsQuotationMark() {
   return true;
 }
 
-bool IsLeftParenthesis() {
-  if ('(' != *source_code) {
-    return false;
+static bool IsCharacter() {
+  switch (*source_code) {
+    case '=':
+      token.type = kTokenEquals;
+      break;
+    case '(':
+      token.type = kTokenLeftParenthesis;
+      break;
+    case ')':
+      token.type = kTokenRightParenthesis;
+      break;
+    case '+':
+      token.type = kTokenPlus;
+      break;
+    case '-':
+      token.type = kTokenMinus;
+      break;
+    case '*':
+      token.type = kTokenStar;
+      break;
+    case '/':
+      token.type = kTokenSlash;
+      break;
+    default:
+      return false;
   }
 
-  token.type = kLeftParenthesis;
   token.text[0] = *source_code;
   token.text[1] = '\0';
-
-  source_code++;
-
-  return true;
-}
-
-bool IsRightParenthesis() {
-  if (')' != *source_code) {
-    return false;
-  }
-
-  token.type = kRightParenthesis;
-  token.text[0] = *source_code;
-  token.text[1] = '\0';
-
   source_code++;
 
   return true;
@@ -75,16 +96,16 @@ void ConsumeNextToken() {
   SkipWhitespace();
 
   if ('\0' == *source_code) {
-    token.type = kEOF;
+    token.type = kTokenEof;
 
     return;
   }
 
-  if ((int)IsQuotationMark() || (int)IsLeftParenthesis() ||
-      (int)IsRightParenthesis()) {
+  if ((int)IsCharacter() || (int)IsQuotationMark()) {
     return;
   }
 
+  // Check if the token is a string
   if (isalpha(*source_code)) {
     int length = 0;
     char buffer[kBufferSize];
@@ -99,23 +120,41 @@ void ConsumeNextToken() {
 
     buffer[length] = '\0';
 
-    // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    // NOLINTBEGIN(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    memset(token.text, 0, sizeof(token.text));
     strncpy(token.text, buffer, strlen(buffer));
+    // NOLINTEND(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 
-    if (0 == strcmp(buffer, "print")) {
-      token.type = kPrint;
+    for (size_t keyword_index = 0; keyword_index < kKeywordCount;
+         keyword_index++) {
+      if (0 == strcmp(token.text, kKeywordMap[keyword_index].kText)) {
+        token.type = kKeywordMap[keyword_index].kType;
 
-      return;
+        return;
+      }
     }
 
-    if (0 == strcmp(buffer, "if")) {
-      token.type = kIf;
-
-      return;
-    }
+    // If then token is not a keyword, it's an identifier
+    token.type = kTokenId;
 
     return;
   }
 
-  token.type = kEOF;
+  // Check if token is a number
+  if (isdigit(*source_code)) {
+    char* end = nullptr;
+    static constexpr int kBase = 10;
+
+    token.type = kTokenNumber;
+    token.value = strtol(source_code, &end, kBase);
+
+    // Move source code to first character after the digit
+    source_code = end;
+
+    return;
+  }
+
+  printf("Unexpected token: '%c'\n", *source_code);
+
+  token.type = kTokenEof;
 }
