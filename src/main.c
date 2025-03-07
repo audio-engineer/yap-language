@@ -1,4 +1,4 @@
-#ifdef COMMODORE
+#ifdef __CC65__
 #include <stdbool.h>
 #endif
 #include <stdio.h>
@@ -8,7 +8,7 @@
 #include "parser.h"
 #include "vm.h"
 
-#ifdef COMMODORE
+#ifdef __CC65__
 enum Constants {
   kInputBufferSize = 81,
   kClearScreen = 147,
@@ -29,7 +29,7 @@ int main() {
   static char input_buffer[kInputBufferSize];
   static int buffer_end_index = 0;
 
-#ifdef COMMODORE
+#ifdef __CC65__
   putchar(kClearScreen);
 #endif
 

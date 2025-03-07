@@ -1,7 +1,7 @@
 #include "lexer.h"
 
 #include <ctype.h>
-#ifdef COMMODORE
+#ifdef __CC65__
 #include <stdbool.h>
 #endif
 #include <stdio.h>
@@ -9,7 +9,7 @@
 #include <string.h>
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-#ifdef COMMODORE
+#ifdef __CC65__
 const char* source_code = NULL;
 #else
 const char* source_code = nullptr;
@@ -27,7 +27,7 @@ static const KeywordEntry kKeywordMap[] = {{"print", kTokenPrint},
                                            {"for", kTokenFor},
                                            {"endfor", kTokenEndfor}};
 
-#ifdef COMMODORE
+#ifdef __CC65__
 static const size_t kKeywordCount = sizeof(kKeywordMap) / sizeof(KeywordEntry);
 #else
 static constexpr size_t kKeywordCount =
@@ -151,7 +151,7 @@ void ConsumeNextToken() {
 
   // Check if token is a number
   if (isdigit(*source_code)) {
-#ifdef COMMODORE
+#ifdef __CC65__
     char* end = NULL;
     static const int kBase = 10;
 #else
