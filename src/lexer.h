@@ -1,6 +1,14 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#ifdef COMMODORE
+enum Constants {
+  kTokenTextBufferSize = 100,
+};
+#else
+static constexpr int kTokenTextBufferSize = 100;
+#endif
+
 typedef enum TokenType {
   kTokenEof,
   kTokenId,
@@ -18,14 +26,6 @@ typedef enum TokenType {
   kTokenEndfor,
   kTokenPrint
 } TokenType;
-
-#ifdef COMMODORE
-enum Constants {
-  kTokenTextBufferSize = 100,
-};
-#else
-static constexpr int kTokenTextBufferSize = 100;
-#endif
 
 typedef struct Token {
   TokenType type;

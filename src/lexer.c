@@ -1,11 +1,9 @@
 #include "lexer.h"
 
 #include <ctype.h>
-
 #ifdef COMMODORE
 #include <stdbool.h>
 #endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
