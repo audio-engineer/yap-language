@@ -1,5 +1,8 @@
 #include "vm.h"
 
+#ifdef COMMODORE
+#include <stdbool.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 
@@ -125,7 +128,7 @@ void PrintOpcodes() {
 void RunVm() {
   int instruction = 0;
 
-  while (1) {
+  while (true) {
     const unsigned char kOpCode = opcodes[instruction++];
 
     switch (kOpCode) {
