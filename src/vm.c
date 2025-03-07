@@ -36,18 +36,14 @@ static size_t stack[kStackSize];
 static size_t stack_index = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
-static void Push(const size_t value) {
-  stack[stack_index++] = value;
-}
+static void Push(const size_t value) { stack[stack_index++] = value; }
 
-static size_t Pop() {
-  return stack[--stack_index];
-}
+static size_t Pop() { return stack[--stack_index]; }
 
 void EmitByte(const unsigned char byte) { opcodes[opcode_index++] = byte; }
 
-size_t AddBoolConstant(const bool boolean) {
-  if (bool_pool_index +1 >= kBoolPoolSize) {
+size_t AddBooleanConstant(const bool boolean) {
+  if (bool_pool_index + 1 >= kBoolPoolSize) {
     return -1;
   }
 
@@ -134,6 +130,18 @@ void RunVm() {
 
         break;
       }
+      case kOpTrue: {
+        const size_t kTerm = Pop();
+        const size_t kResultIndex = AddBooleanConstant(true);
+        Push(kResultIndex);
+        break;
+      }
+      case kOpFalse: {
+        const size_t kTerm = Pop();
+        const size_t kResultIndex = AddBooleanConstant(false);
+        Push(kResultIndex);
+        break;
+      }
       case kOpAdd: {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
@@ -160,7 +168,8 @@ void RunVm() {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
 
-        const size_t kResultIndex = AddBoolConstant(*(long*)constants[kSecondTerm] > *(long*)constants[kFirstTerm]);
+        const size_t kResultIndex = AddBooleanConstant(
+            *(long*)constants[kSecondTerm] > *(long*)constants[kFirstTerm]);
         Push(kResultIndex);
 
         break;
@@ -169,7 +178,8 @@ void RunVm() {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
 
-        const size_t kResultIndex = AddBoolConstant(*(long*)constants[kSecondTerm] < *(long*)constants[kFirstTerm]);
+        const size_t kResultIndex = AddBooleanConstant(
+            *(long*)constants[kSecondTerm] < *(long*)constants[kFirstTerm]);
         Push(kResultIndex);
 
         break;
@@ -213,4 +223,4 @@ void RunVm() {
       }
     }
   }
- }
+}

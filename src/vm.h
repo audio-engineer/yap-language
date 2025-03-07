@@ -17,6 +17,8 @@ typedef enum Opcode {
   kOpDivide,
   kOpGreaterThan,
   kOpLessThan,
+  kOpTrue,
+  kOpFalse,
   kOpPrint,
   kOpIf,
   kOpHalt
@@ -28,6 +30,8 @@ extern size_t opcode_index;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 void EmitByte(unsigned char byte);
+
+size_t AddBooleanConstant(bool boolean);
 
 size_t AddNumberConstant(long number);
 

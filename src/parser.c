@@ -6,37 +6,45 @@
 #include "lexer.h"
 #include "vm.h"
 
-// static void ParseTerm();
 static void ParseNumber();
+static void ParseBoolean();
 
 static void ParseExpression() {
+  //Assuming boolean
+  if (token.type != kTokenNumber) {
+    ParseBoolean();
+    return;
+  }
+
   ParseNumber();
 
   ConsumeNextToken();
 
-  while (kTokenPlus == token.type || kTokenMinus == token.type || kTokenGreaterThan == token.type || kTokenLessThan == token.type) {
+  while (kTokenPlus == token.type || kTokenMinus == token.type ||
+         kTokenGreaterThan == token.type || kTokenLessThan == token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
 
-    ParseNumber();
-
     switch (kOperation) {
       case kTokenPlus:
+        ParseNumber();
         EmitByte(kOpAdd);
         break;
       case kTokenMinus:
+        ParseNumber();
         EmitByte(kOpSubtract);
         break;
       case kTokenGreaterThan:
+        ParseNumber();
         EmitByte(kOpGreaterThan);
         break;
       case kTokenLessThan:
+        ParseNumber();
         EmitByte(kOpLessThan);
         break;
       default:
         printf("Expected Operator");
-        exit(EXIT_FAILURE);
     }
   }
 }
@@ -77,8 +85,17 @@ static void ParseNumber() {
     EmitByte(kOpConstant);
     EmitByte(kIndex);
   }
+}
 
-  // ParseExpression();
+static void ParseBoolean() {
+  if (kTokenTrue == token.type) {
+    const size_t kIndex = AddBooleanConstant(true);
+    EmitByte(kOpTrue);
+  } else if (kTokenFalse == token.type) {
+    const size_t kIndex = AddBooleanConstant(false);
+    EmitByte(kOpFalse);
+  }
+
 }
 
 static void ParseString() {
@@ -106,10 +123,10 @@ static void ParsePrintStatement() {
 
   ConsumeNextToken();
 
-  if (kTokenQuotationMark != token.type) {
-    ParseExpression();
-  } else {
+  if (kTokenQuotationMark == token.type) {
     ParseString();
+  } else {
+    ParseExpression();
   }
 
   ConsumeNextToken();
@@ -154,11 +171,9 @@ static void ParseStatement() {
   switch (token.type) {
     case kTokenPrint:
       ParsePrintStatement();
-
       break;
     case kTokenIf:
       ParseIfStatement();
-
       break;
     default:
       printf("Unregistered statement '%s'\n", token.text);
