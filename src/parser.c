@@ -151,7 +151,6 @@ static void ParseStatement() {
       break;
     default:
       printf("Unregistered statement '%s'\n", token.text);
-
       token.type = kTokenEof;
   }
 }

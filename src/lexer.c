@@ -15,10 +15,9 @@ typedef struct KeywordEntry {
   const TokenType kType;
 } KeywordEntry;
 
-static const KeywordEntry kKeywordMap[] = {{"print", kTokenPrint},
-                                           {"if", kTokenIf},
-                                           {"for", kTokenFor},
-                                           {"endfor", kTokenEndfor}};
+static const KeywordEntry kKeywordMap[] = {
+    {"print", kTokenPrint},   {"if", kTokenIf},     {"for", kTokenFor},
+    {"endfor", kTokenEndfor}, {"true", kTokenTrue}, {"false", kTokenFalse}};
 
 static constexpr size_t kKeywordCount =
     sizeof(kKeywordMap) / sizeof(KeywordEntry);
@@ -78,6 +77,12 @@ static bool IsCharacter() {
       break;
     case '/':
       token.type = kTokenSlash;
+      break;
+    case '>':
+      token.type = kTokenGreaterThan;
+      break;
+    case '<':
+      token.type = kTokenLessThan;
       break;
     default:
       return false;

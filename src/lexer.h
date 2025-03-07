@@ -10,13 +10,17 @@ typedef enum TokenType {
   kTokenStar,
   kTokenSlash,
   kTokenEquals,
+  kTokenLessThan,
+  kTokenGreaterThan,
   kTokenLeftParenthesis,
   kTokenRightParenthesis,
   kTokenQuotationMark,
   kTokenIf,
   kTokenFor,
   kTokenEndfor,
-  kTokenPrint
+  kTokenPrint,
+  kTokenTrue,
+  kTokenFalse
 } TokenType;
 
 static constexpr int kTokenTextBufferSize = 100;
