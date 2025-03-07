@@ -16,9 +16,10 @@ ifneq (,$(wildcard ./.env))
 endif
 
 TARGET = yap-lang.prg
+PLATFORM = c128
 
 SRC_DIR := src
-BUILD_DIR := build-c128-release
+BUILD_DIR := build-$(PLATFORM)-release
 
 SOURCES := $(wildcard $(SRC_DIR)/*.c)
 HEADERS := $(wildcard $(SRC_DIR)/*.h)
@@ -46,9 +47,9 @@ unused-param,$\
 unused-var,$\
 const-overflow
 
-CFLAGS = -O -t c128 -D COMMODORE -W $(WARNINGS)
+CFLAGS = -O -t $(PLATFORM) -W $(WARNINGS)
 AFLAGS =
-LDFLAGS	= -t c128 -m $(BUILD_DIR)/yap-lang.map
+LDFLAGS	= -t $(PLATFORM) -m $(BUILD_DIR)/yap-lang.map
 
 ASMFILES := $(patsubst %.c,$(BUILD_DIR)/%.s,$(notdir $(SOURCES)))
 OBJFILES := $(patsubst %.c,$(BUILD_DIR)/%.o,$(notdir $(SOURCES)))
@@ -74,7 +75,7 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.s
 	$(CA65) $(AFLAGS) $<
 
 $(BUILD_DIR)/$(TARGET): $(OBJFILES)
-	$(LD65) -o $@ $(LDFLAGS) $^ $(CC65_LIB)/c128.lib
+	$(LD65) -o $@ $(LDFLAGS) $^ $(CC65_LIB)/$(PLATFORM).lib
 
 clean:
 	$(RM) -r $(BUILD_DIR)/*
