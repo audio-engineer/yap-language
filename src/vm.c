@@ -6,6 +6,7 @@
 typedef enum ValueType {
   kNumber,
   kString,
+  kBool,
 } ValueType;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
@@ -26,19 +27,42 @@ static constexpr int kNumberPoolSize = 16;
 static long number_pool[kNumberPoolSize];
 static size_t number_pool_index = 0;
 
+static constexpr int kBoolPoolSize = 16;
+static bool bool_pool[kBoolPoolSize];
+static size_t bool_pool_index = 0;
+
 static constexpr int kStackSize = 8;
 static size_t stack[kStackSize];
 static size_t stack_index = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
-static void Push(const size_t value) { stack[stack_index++] = value; }
+static void Push(const size_t value) {
+  stack[stack_index++] = value;
+}
 
-static size_t Pop() { return stack[--stack_index]; }
+static size_t Pop() {
+  return stack[--stack_index];
+}
 
 void EmitByte(const unsigned char byte) { opcodes[opcode_index++] = byte; }
 
+size_t AddBoolConstant(const bool boolean) {
+  if (bool_pool_index +1 >= kBoolPoolSize) {
+    return -1;
+  }
+
+  bool_pool[bool_pool_index] = boolean;
+
+  constants[constants_index] = &bool_pool[bool_pool_index];
+  constant_types[constants_index] = kBool;
+
+  bool_pool_index++;
+
+  return constants_index++;
+}
+
 size_t AddNumberConstant(const long number) {
-  if (string_pool_index + 1 >= kStringPoolSize) {
+  if (number_pool_index + 1 >= kNumberPoolSize) {
     return -1;
   }
 
@@ -132,8 +156,22 @@ void RunVm() {
 
         break;
       }
+      case kOpGreaterThan: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+
+        const size_t kResultIndex = AddBoolConstant(*(long*)constants[kSecondTerm] > *(long*)constants[kFirstTerm]);
+        Push(kResultIndex);
+
+        break;
+      }
       case kOpPrint: {
         const unsigned char kIndex = Pop();
+
+        if (kBool == constant_types[kIndex]) {
+          printf("%s\n", *(bool*)constants[kIndex] ? "true" : "false");
+          break;
+        }
 
         if (kNumber == constant_types[kIndex]) {
           printf("%ld\n", *(long*)constants[kIndex]);
@@ -166,4 +204,4 @@ void RunVm() {
       }
     }
   }
-}
+ }

@@ -13,7 +13,7 @@ static void ParseExpression() {
 
   ConsumeNextToken();
 
-  while (kTokenPlus == token.type || kTokenMinus == token.type) {
+  while (kTokenPlus == token.type || kTokenMinus == token.type || kTokenGreaterThan == token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
@@ -26,6 +26,10 @@ static void ParseExpression() {
 
     if (kTokenMinus == kOperation) {
       EmitByte(kOpSubtract);
+    }
+
+    if (kTokenGreaterThan == kOperation) {
+      EmitByte(kOpGreaterThan);
     }
   }
 }
