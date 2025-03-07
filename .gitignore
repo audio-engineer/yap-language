@@ -164,3 +164,4 @@ Temporary Items
 CMakeUserPresets.json
 build*/
 .cache/
+.env

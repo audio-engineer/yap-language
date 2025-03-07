@@ -1,12 +1,21 @@
 #include "lexer.h"
 
 #include <ctype.h>
+
+#ifdef COMMODORE
+#include <stdbool.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+#ifdef COMMODORE
+const char* source_code = NULL;
+#else
 const char* source_code = nullptr;
+#endif
 Token token;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -20,8 +29,12 @@ static const KeywordEntry kKeywordMap[] = {{"print", kTokenPrint},
                                            {"for", kTokenFor},
                                            {"endfor", kTokenEndfor}};
 
+#ifdef COMMODORE
+static const size_t kKeywordCount = sizeof(kKeywordMap) / sizeof(KeywordEntry);
+#else
 static constexpr size_t kKeywordCount =
     sizeof(kKeywordMap) / sizeof(KeywordEntry);
+#endif
 
 static void SkipWhitespace() {
   while (*source_code && isspace(*source_code)) {
@@ -30,14 +43,14 @@ static void SkipWhitespace() {
 }
 
 static bool IsQuotationMark() {
+  int length = 0;
+
   if ('"' != *source_code) {
     return false;
   }
 
   token.type = kTokenQuotationMark;
   source_code++;
-
-  int length = 0;
 
   while (*source_code && '"' != *source_code) {
     if (length < sizeof(token.text) - 1) {
@@ -90,8 +103,6 @@ static bool IsCharacter() {
   return true;
 }
 
-static constexpr int kBufferSize = 100;
-
 void ConsumeNextToken() {
   SkipWhitespace();
 
@@ -107,8 +118,9 @@ void ConsumeNextToken() {
 
   // Check if the token is a string
   if (isalpha(*source_code)) {
+    size_t keyword_index = 0;
     int length = 0;
-    char buffer[kBufferSize];
+    char buffer[kTokenTextBufferSize];
 
     while (isalnum(*source_code)) {
       if (length < (int)sizeof(buffer) - 1) {
@@ -125,8 +137,7 @@ void ConsumeNextToken() {
     strncpy(token.text, buffer, strlen(buffer));
     // NOLINTEND(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 
-    for (size_t keyword_index = 0; keyword_index < kKeywordCount;
-         keyword_index++) {
+    for (keyword_index = 0; keyword_index < kKeywordCount; keyword_index++) {
       if (0 == strcmp(token.text, kKeywordMap[keyword_index].kText)) {
         token.type = kKeywordMap[keyword_index].kType;
 
@@ -142,8 +153,13 @@ void ConsumeNextToken() {
 
   // Check if token is a number
   if (isdigit(*source_code)) {
+#ifdef COMMODORE
+    char* end = NULL;
+    static const int kBase = 10;
+#else
     char* end = nullptr;
     static constexpr int kBase = 10;
+#endif
 
     token.type = kTokenNumber;
     token.value = strtol(source_code, &end, kBase);

@@ -19,7 +19,13 @@ typedef enum TokenType {
   kTokenPrint
 } TokenType;
 
+#ifdef COMMODORE
+enum Constants {
+  kTokenTextBufferSize = 100,
+};
+#else
 static constexpr int kTokenTextBufferSize = 100;
+#endif
 
 typedef struct Token {
   TokenType type;

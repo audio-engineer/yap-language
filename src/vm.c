@@ -3,30 +3,41 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef COMMODORE
+enum Constants {
+  kOpcodesSize = 128,
+  kConstantsSize = 128,
+  kStringPoolSize = 512,
+  kNumberPoolSize = 64,
+  kStackSize = 16,
+};
+#else
+static constexpr int kOpcodesSize = 128;
+static constexpr int kConstantsSize = 128;
+static constexpr int kStringPoolSize = 512;
+static constexpr int kNumberPoolSize = 64;
+static constexpr int kStackSize = 16;
+#endif
+
 typedef enum ValueType {
   kNumber,
   kString,
 } ValueType;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-static constexpr int kMaximumNumberOfOpcodes = 128;
-unsigned char opcodes[kMaximumNumberOfOpcodes];
+unsigned char opcodes[kOpcodesSize];
 size_t opcode_index = 0;
 
-static constexpr int kMaximumNumberOfConstants = 16;
-static void* constants[kMaximumNumberOfConstants];
-static ValueType constant_types[kMaximumNumberOfConstants];
+static void* constants[kConstantsSize];
+static ValueType constant_types[kConstantsSize];
 static size_t constants_index = 0;
 
-static constexpr int kStringPoolSize = 128;
 static char string_pool[kStringPoolSize];
 static size_t string_pool_index = 0;
 
-static constexpr int kNumberPoolSize = 16;
 static long number_pool[kNumberPoolSize];
 static size_t number_pool_index = 0;
 
-static constexpr int kStackSize = 8;
 static size_t stack[kStackSize];
 static size_t stack_index = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
@@ -38,9 +49,11 @@ static size_t Pop() { return stack[--stack_index]; }
 void EmitByte(const unsigned char byte) { opcodes[opcode_index++] = byte; }
 
 size_t AddNumberConstant(const long number) {
-  if (string_pool_index + 1 >= kStringPoolSize) {
-    return -1;
-  }
+  // TODO(Martin): Add check for number_pool overflow.
+  // TODO(Martin): Can't return -1 due to size_t return type
+  // if (number_pool_index + 1 >= kNumberPoolSize) {
+  //   return -1;
+  // }
 
   number_pool[number_pool_index] = number;
 
@@ -54,17 +67,24 @@ size_t AddNumberConstant(const long number) {
 
 size_t AddStringConstant(const char* const string) {
   const size_t kStringLength = strlen(string);
+#ifdef COMMODORE
+  char* current_string_pool_pointer = NULL;
+#else
+  char* current_string_pool_pointer = nullptr;
+#endif
 
-  if (string_pool_index + kStringLength + 1 > sizeof(string_pool)) {
-    return -1;
-  }
+  // TODO(Martin): Add check for string_pool overflow
+  // TODO(Martin): Can't return -1 due to size_t return type
+  // if (string_pool_index + kStringLength + 1 > kStringPoolSize) {
+  //   return -1;
+  // }
 
-  char* const kCurrentStringPoolPointer = &string_pool[string_pool_index];
+  current_string_pool_pointer = &string_pool[string_pool_index];
 
   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-  strncpy(kCurrentStringPoolPointer, string, kStringLength);
+  strncpy(current_string_pool_pointer, string, kStringLength);
 
-  constants[constants_index] = kCurrentStringPoolPointer;
+  constants[constants_index] = current_string_pool_pointer;
   constant_types[constants_index] = kString;
 
   string_pool_index += kStringLength + 1;
@@ -73,7 +93,13 @@ size_t AddStringConstant(const char* const string) {
 }
 
 void PrintOpcodes() {
+#ifdef COMMODORE
+  static const int kRowLength = 8;
+#else
   static constexpr int kRowLength = 8;
+#endif
+
+  size_t index = 0;
 
   if (0 == opcode_index) {
     printf("No opcodes.\n");
@@ -81,7 +107,7 @@ void PrintOpcodes() {
     return;
   }
 
-  for (size_t index = 0; index < opcode_index; index++) {
+  for (index = 0; index < opcode_index; index++) {
     if (0 != index && 0 == index % kRowLength) {
       printf("\n");
     }
@@ -99,7 +125,7 @@ void PrintOpcodes() {
 void RunVm() {
   int instruction = 0;
 
-  while (true) {
+  while (1) {
     const unsigned char kOpCode = opcodes[instruction++];
 
     switch (kOpCode) {
