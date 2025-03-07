@@ -7,34 +7,48 @@ jobs:
     steps:
       - name: Install Dependencies
         run: |
+          # Add cc65 APT Repository
+          echo 'deb https://download.opensuse.org/repositories/home:/strik/xUbuntu_23.04/ /' | \
+          sudo tee /etc/apt/sources.list.d/home:strik.list
+          curl -fsSL https://download.opensuse.org/repositories/home:strik/xUbuntu_23.04/Release.key | \
+          gpg --dearmor | \
+          sudo tee /etc/apt/trusted.gpg.d/home_strik.gpg > /dev/null
+
+          # Add LLVM/Clang APT Repository
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 20
+
+          # Update and Install
           sudo apt-get update
-          sudo apt-get install -y ninja-build
+          sudo apt-get install -y ninja-build cc65 clang-tidy-20
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Get LLVM-MOS SDK
-        run: |
-          wget https://github.com/llvm-mos/llvm-mos-sdk/releases/latest/download/llvm-mos-linux.tar.xz
-          tar xf llvm-mos-linux.tar.xz
-          echo "CMAKE_PREFIX_PATH=$PWD/llvm-mos" >> "$GITHUB_ENV"
       - name: Run ClangFormat
         uses: DoozyX/clang-format-lint-action@v0.18.2
         with:
           source: src
-      - name: Configure and Build
+      - name: CMake Configure and Build
         run: |
-          cmake -DCMAKE_BUILD_TYPE=Release --preset common-commodore -B build
-          cmake --build build
+          cmake -DCMAKE_C_COMPILER=$(which clang-20) --preset native-release
+          cmake --build build-native-release
+      - name: Make Build
+        run: |
+          make CC65_LIB=/usr/share/cc65/lib
       - name: Run ClangTidy
         run: |
-          ./llvm-mos/bin/clang-tidy --config-file .clang-tidy -p build src/*
+          make lint
       - name: Set Environment Variables
         run: |
           echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
       - name: Rename Executable
         run: |
-          sudo mv build/yap-lang.prg build/yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
+          sudo mv build-c128-release/yap-lang.prg build-c128-release/yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
+          sudo mv build-native-release/yap-lang-native build-native-release/yap-lang-native-${{ github.head_ref }}-${{ env.sha_short }}
       - name: Upload Executable
         uses: actions/upload-artifact@v4
         with:
-          name: yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
-          path: build/yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
+          name: yap-lang-${{ github.head_ref }}-${{ env.sha_short }}
+          path: |
+            build-c128-release/yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
+            build-native-release/yap-lang-native-${{ github.head_ref }}-${{ env.sha_short }}

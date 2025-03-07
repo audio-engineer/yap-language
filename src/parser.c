@@ -71,10 +71,6 @@ static void ParseNumber() {
 }
 
 static void ParseString() {
-  if (kTokenQuotationMark != token.type) {
-    return;
-  }
-
   const size_t kStringIndex = AddStringConstant(token.text);
 
   EmitByte(kOpConstant);

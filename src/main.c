@@ -1,3 +1,7 @@
+#ifdef COMMODORE
+#include <stdbool.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +9,14 @@
 #include "parser.h"
 #include "vm.h"
 
+#ifdef COMMODORE
+enum Constants {
+  kInputBufferSize = 81,
+  kClearScreen = 147,
+};
+#else
 static constexpr int kInputBufferSize = 81;
+#endif
 
 void PrintHelp() {
   printf("Usage:\n");
@@ -16,18 +27,16 @@ void PrintHelp() {
 }
 
 int main() {
-#ifdef COMMODORE
-  static constexpr int kClearScreen = 147;
+  static char input_buffer[kInputBufferSize];
+  static int buffer_end_index = 0;
 
-  printf("%c", kClearScreen);
+#ifdef COMMODORE
+  putchar(kClearScreen);
 #endif
 
   printf("Welcome to the Yap Language!\n");
   printf("\n");
   printf("Run 'help' to see a list of commands.\n");
-
-  static char input_buffer[kInputBufferSize];
-  static int buffer_end_index = 0;
 
   while (true) {
     putchar('>');

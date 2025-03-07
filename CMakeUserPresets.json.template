@@ -16,22 +16,6 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": ""
       }
-    },
-    {
-      "name": "c128-debug-local",
-      "displayName": "C128 Debug Local",
-      "inherits": "c128-debug",
-      "cacheVariables": {
-        "CMAKE_PREFIX_PATH": ""
-      }
-    },
-    {
-      "name": "c128-release-local",
-      "displayName": "C128 Release Local",
-      "inherits": "c128-release",
-      "cacheVariables": {
-        "CMAKE_PREFIX_PATH": ""
-      }
     }
   ]
 }
