@@ -1,12 +1,12 @@
 #include "vm.h"
 
-#ifdef COMMODORE
+#ifdef __CC65__
 #include <stdbool.h>
 #endif
 #include <stdio.h>
 #include <string.h>
 
-#ifdef COMMODORE
+#ifdef __CC65__
 enum Constants {
   kOpcodesSize = 128,
   kConstantsSize = 128,
@@ -70,7 +70,7 @@ size_t AddNumberConstant(const long number) {
 
 size_t AddStringConstant(const char* const string) {
   const size_t kStringLength = strlen(string);
-#ifdef COMMODORE
+#ifdef __CC65__
   char* current_string_pool_pointer = NULL;
 #else
   char* current_string_pool_pointer = nullptr;
@@ -96,7 +96,7 @@ size_t AddStringConstant(const char* const string) {
 }
 
 void PrintOpcodes() {
-#ifdef COMMODORE
+#ifdef __CC65__
   static const int kRowLength = 8;
 #else
   static constexpr int kRowLength = 8;

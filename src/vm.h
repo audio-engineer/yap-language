@@ -1,7 +1,7 @@
 #ifndef VM_H
 #define VM_H
 
-#ifdef COMMODORE
+#ifdef __CC65__
 #include <stddef.h>
 #elif __linux__
 #include <stddef.h>

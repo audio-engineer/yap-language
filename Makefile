@@ -80,7 +80,7 @@ clean:
 	$(RM) -r $(BUILD_DIR)/*
 
 lint:
-	$(CLANG_TIDY) --config-file .clang-tidy --extra-arg=-std=c99 --extra-arg=-DCOMMODORE $(SOURCES) $(HEADERS)
+	$(CLANG_TIDY) --config-file .clang-tidy --extra-arg=-std=c99 --extra-arg=-D__CC65__ $(SOURCES) $(HEADERS)
 	$(CLANG_TIDY) --config-file .clang-tidy -p build-native-release $(SOURCES) $(HEADERS)
 
 format:

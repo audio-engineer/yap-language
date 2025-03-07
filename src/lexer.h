@@ -1,7 +1,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#ifdef COMMODORE
+#ifdef __CC65__
 enum Constants {
   kTokenTextBufferSize = 100,
 };
