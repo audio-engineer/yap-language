@@ -165,6 +165,15 @@ void RunVm() {
 
         break;
       }
+      case kOpLessThan: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+
+        const size_t kResultIndex = AddBoolConstant(*(long*)constants[kSecondTerm] < *(long*)constants[kFirstTerm]);
+        Push(kResultIndex);
+
+        break;
+      }
       case kOpPrint: {
         const unsigned char kIndex = Pop();
 

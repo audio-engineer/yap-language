@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "lexer.h"
 #include "vm.h"
@@ -13,23 +14,29 @@ static void ParseExpression() {
 
   ConsumeNextToken();
 
-  while (kTokenPlus == token.type || kTokenMinus == token.type || kTokenGreaterThan == token.type) {
+  while (kTokenPlus == token.type || kTokenMinus == token.type || kTokenGreaterThan == token.type || kTokenLessThan == token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
 
     ParseNumber();
 
-    if (kTokenPlus == kOperation) {
-      EmitByte(kOpAdd);
-    }
-
-    if (kTokenMinus == kOperation) {
-      EmitByte(kOpSubtract);
-    }
-
-    if (kTokenGreaterThan == kOperation) {
-      EmitByte(kOpGreaterThan);
+    switch (kOperation) {
+      case kTokenPlus:
+        EmitByte(kOpAdd);
+        break;
+      case kTokenMinus:
+        EmitByte(kOpSubtract);
+        break;
+      case kTokenGreaterThan:
+        EmitByte(kOpGreaterThan);
+        break;
+      case kTokenLessThan:
+        EmitByte(kOpLessThan);
+        break;
+      default:
+        printf("Expected Operator");
+        exit(EXIT_FAILURE);
     }
   }
 }
