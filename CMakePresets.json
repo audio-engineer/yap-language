@@ -6,13 +6,13 @@
   },
   "configurePresets": [
     {
-      "name": "common-all",
+      "name": "common",
       "generator": "Ninja"
     },
     {
       "name": "native-debug",
       "displayName": "Native Debug",
-      "inherits": "common-all",
+      "inherits": "common",
       "binaryDir": "build-native-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
@@ -21,7 +21,7 @@
     {
       "name": "native-release",
       "displayName": "Native Release",
-      "inherits": "common-all",
+      "inherits": "common",
       "binaryDir": "build-native-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"

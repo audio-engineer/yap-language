@@ -6,8 +6,6 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-message(STATUS "Configuring for the native platform")
-
 add_executable(yap-lang-native
         src/main.c
         src/lexer.c
@@ -17,13 +15,3 @@ add_executable(yap-lang-native
         src/vm.c
         src/vm.h
 )
-
-if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    message(STATUS "Configuring optimized build")
-
-    target_compile_options(yap-lang-native PRIVATE -Os)
-
-    target_link_options(yap-lang-native PRIVATE -Os)
-else ()
-    message(STATUS "Configuring unoptimized build")
-endif ()
