@@ -2,6 +2,9 @@
 
 #include <stdio.h>
 
+#if defined(__CC65__) && !defined(NDEBUG)
+#include "benchmark.h"
+#endif
 #include "lexer.h"
 #include "vm.h"
 
@@ -154,9 +157,18 @@ static void ParseStatement() {
 
 void ParseProgram(const char* const source_code_parameter) {
   source_code = source_code_parameter;
+
+#if defined(__CC65__) && !defined(NDEBUG)
+  StartTimerA();
+#endif
+
   ConsumeNextToken();
 
   while (kTokenEof != token.type) {
     ParseStatement();
   }
+
+#if defined(__CC65__) && !defined(NDEBUG)
+  StopTimerA();
+#endif
 }
