@@ -27,7 +27,6 @@ void PrintHelp() {
 
 int main() {
   static char input_buffer[kInputBufferSize];
-  static int buffer_end_index = 0;
 
 #ifdef __CC65__
   putchar(kClearScreen);
@@ -38,28 +37,11 @@ int main() {
   printf("Run 'help' to see a list of commands.\n");
 
   while (true) {
-    putchar('>');
-    putchar(' ');
-    buffer_end_index = 0;
+    printf("> ");
 
-    while (true) {
-      const int kInputCharacter = getchar();
-
-      if (EOF == kInputCharacter) {
-        break;
-      }
-
-      if ('\n' == kInputCharacter) {
-        break;
-      }
-
-      input_buffer[buffer_end_index++] = (char)kInputCharacter;
-      input_buffer[buffer_end_index] = 0;
-
-      if (buffer_end_index == sizeof(input_buffer) - 1) {
-        break;
-      }
-    }
+    // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    memset(input_buffer, 0, kInputBufferSize);
+    fgets(input_buffer, kInputBufferSize, stdin);
 
     if (0 == strncmp("exit", input_buffer, 4)) {
       break;
