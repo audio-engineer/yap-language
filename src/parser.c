@@ -6,8 +6,8 @@
 #include "lexer.h"
 #include "vm.h"
 
-static void ParseNumber();
-static void ParseBoolean();
+static bool ParseNumber();
+static bool ParseBoolean();
 
 static void ParseExpression() {
   ParseNumber();
