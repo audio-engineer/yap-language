@@ -1,3 +1,6 @@
+; Use CIA 1 as a timer to benchmark function calls
+; See https://www.c64-wiki.com/wiki/CIA
+
 .autoimport on
 .importzp sp
 .import _printf
@@ -8,7 +11,7 @@
 .segment "RODATA"
 
 ticks_string:
-    .byte "%U ticks",$0d,$00    ; %u ticks\r\0
+    .byte "%U ticks",$0d,$00    ; "%u ticks\r\0"
 
 .segment "CODE"
 
@@ -17,13 +20,18 @@ ticks_string:
 ; ---------------------------------------------------------------
 
 .proc _StartTimerA: near
-    lda #$00
-    sta $dc0e   ; Stop Timer A
-    lda #$ff
-    sta $dc04   ; Set Timer A low byte
-    sta $dc05   ; Set Timer A high byte
-    lda #$81
-    sta $dc0e   ; Start Timer A
+; Stop Timer A
+    lda #$00    ; Load 0x00 into A register
+    sta $dc0e   ; Stop Timer A by setting all control bits to 0
+
+; Set Timer A start value
+    lda #$ff    ; Load 0xff into A register
+    sta $dc04   ; Set Timer A low byte to 0xff
+    sta $dc05   ; Set Timer A high byte to 0xff
+
+; Set Timer A configuration
+    lda #$81    ; Load 1000 0001 into A register. Bit 7 high: Start Timer A, bit 0 high: 50 Hz clock speed
+    sta $dc0e   ; Load configuration into Timer A
     rts
 .endproc
 
@@ -32,37 +40,35 @@ ticks_string:
 ; ---------------------------------------------------------------
 
 .proc _StopTimerA: near
-    lda $dc0e
-    jsr pusha
-    ldy #$00
-    lda (sp),y
-    and #$7f
-    sta $dc0e
-    lda $dc04
-    sta tmp1
-    lda $dc05
-    sta tmp2
-    lda tmp1
-    sta tmp3
-    lda tmp2
-    sta tmp3+1
-    lda #<(ticks_string)
-    ldx #>(ticks_string)
-    jsr pushax
-    lda tmp3
-    ldx tmp3+1
-    jsr pushax
-    ldy #$04
-    jsr _printf
-    jmp incsp1
+; Stop Timer A by setting control bit 7 to low while keeping the other control bits intact
+    lda $dc0e               ; Load Timer A control register into A register
+    and #$7f                ; AND control bits with 0111 1111 (stop Timer A)
+    sta $dc0e               ; Stop Timer A
+
+; Read Timer A 16-bit value from $dc04 and $dc05 and store it in tmp1 and tmp1+1
+    lda $dc04               ; Load Timer A value low byte into A register
+    sta tmp1                ; Store Timer A value low byte in tmp1
+    lda $dc05               ; Read Timer A value high byte into A register
+    sta tmp1+1              ; Store Timer A value high byte in tmp1+1
+
+; Push format format string low and high bytes onto stack
+    lda #<(ticks_string)    ; Load format string low byte into A register
+    ldx #>(ticks_string)    ; Load format string high byte into A register
+    jsr pushax              ; Push format string low and high bytes onto stack
+
+; Push Timer A value low and high bytes onto stack
+    lda tmp1                ; Load Timer A value low byte into A register
+    ldx tmp1+1              ; Load Timer A value high byte into X register
+    jsr pushax              ; Push low and high bytes onto stack
+
+; Call printf, pop 4 bytes off stack and return
+    ldy #$04                ; Load 0x04 into Y register: Tell printf there are 4 bytes of data to print (16-bit value, \r, \0)
+    jsr _printf             ; Call printf
+    jmp incsp1              ; Cleanup
 
 .segment "BSS"
 
 tmp1:
-    .res 1,$00
-tmp2:
-    .res 1,$00
-tmp3:
-    .res 2,$00
+    .res 2,$00  ; Reserve 2 bytes of zeros
 
 .endproc
