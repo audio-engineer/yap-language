@@ -7,38 +7,26 @@
 #include "vm.h"
 
 static void ParseNumber();
-static void ParseCondition();
+static void ParseBoolean();
 
 static void ParseExpression() {
   ParseNumber();
 
   ConsumeNextToken();
 
-  while (kTokenPlus == token.type || kTokenMinus == token.type ||
-         kTokenGreaterThan == token.type || kTokenLessThan == token.type) {
+  while (kTokenPlus == token.type || kTokenMinus == token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
 
-    switch (kOperation) {
-      case kTokenPlus:
-        ParseNumber();
-        EmitByte(kOpAdd);
-        break;
-      case kTokenMinus:
-        ParseNumber();
-        EmitByte(kOpSubtract);
-        break;
-      case kTokenGreaterThan:
-        ParseNumber();
-        EmitByte(kOpGreaterThan);
-        break;
-      case kTokenLessThan:
-        ParseNumber();
-        EmitByte(kOpLessThan);
-        break;
-      default:
-        printf("Expected Operator");
+    ParseNumber();
+
+    if (kTokenPlus == kOperation) {
+      EmitByte(kOpAdd);
+    }
+
+    if (kTokenMinus == kOperation) {
+      EmitByte(kOpSubtract);
     }
   }
 }
@@ -72,7 +60,7 @@ static void ParseExpression() {
  */
 static void ParseNumber() {
   if (kTokenNumber == token.type) {
-    const long kNumber = token.value;
+    const long kNumber = token.value.number;
 
     const size_t kIndex = AddNumberConstant(kNumber);
 
@@ -81,7 +69,7 @@ static void ParseNumber() {
   }
 }
 
-static void ParseCondition() {
+static void ParseBoolean() {
   if (kTokenTrue == token.type) {
     AddBooleanConstant(true);
     EmitByte(kOpTrue);
@@ -96,7 +84,7 @@ static void ParseString() {
     return;
   }
 
-  const size_t kStringIndex = AddStringConstant(token.text);
+  const size_t kStringIndex = AddStringConstant(token.value.text);
 
   EmitByte(kOpConstant);
   EmitByte(kStringIndex);
@@ -118,13 +106,8 @@ static void ParsePrintStatement() {
 
   if (kTokenQuotationMark == token.type) {
     ParseString();
-  } else if (token.type == kTokenNumber) {
-    ParseExpression();
-  } else if (kTokenTrue == token.type || kTokenFalse == token.type) {
-    ParseCondition();
   } else {
-    printf("Expression, string or condition expected");
-    return;
+    ParseExpression();
   }
 
   ConsumeNextToken();
@@ -174,7 +157,7 @@ static void ParseStatement() {
       ParseIfStatement();
       break;
     default:
-      printf("Unregistered statement '%s'\n", token.text);
+      printf("Unregistered statement '%s'\n", token.value.text);
       token.type = kTokenEof;
   }
 }
