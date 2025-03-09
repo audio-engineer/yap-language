@@ -15,7 +15,8 @@ static void ParseExpression() {
 
   ConsumeNextToken();
 
-  while (kTokenPlus == token.type || kTokenMinus == token.type || kTokenGreaterThan == token.type ||kTokenLessThan == token.type) {
+  while (kTokenPlus == token.type || kTokenMinus == token.type ||
+         kTokenGreaterThan == token.type || kTokenLessThan == token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
@@ -47,7 +48,6 @@ static void ParseExpression() {
     } else {
       printf("Expected number or bool, also identifiers are not implemented");
     }
-
   }
 }
 
