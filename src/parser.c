@@ -7,15 +7,9 @@
 #include "vm.h"
 
 static void ParseNumber();
-static void ParseBoolean();
+static void ParseCondition();
 
 static void ParseExpression() {
-  //Assuming boolean
-  if (token.type != kTokenNumber) {
-    ParseBoolean();
-    return;
-  }
-
   ParseNumber();
 
   ConsumeNextToken();
@@ -87,15 +81,14 @@ static void ParseNumber() {
   }
 }
 
-static void ParseBoolean() {
+static void ParseCondition() {
   if (kTokenTrue == token.type) {
-    const size_t kIndex = AddBooleanConstant(true);
+    AddBooleanConstant(true);
     EmitByte(kOpTrue);
   } else if (kTokenFalse == token.type) {
-    const size_t kIndex = AddBooleanConstant(false);
+    AddBooleanConstant(false);
     EmitByte(kOpFalse);
   }
-
 }
 
 static void ParseString() {
@@ -110,7 +103,7 @@ static void ParseString() {
 }
 
 /**
- * Grammar: print(expression)
+ * Grammar: print(something)
  */
 static void ParsePrintStatement() {
   ConsumeNextToken();
@@ -125,8 +118,13 @@ static void ParsePrintStatement() {
 
   if (kTokenQuotationMark == token.type) {
     ParseString();
-  } else {
+  } else if (token.type == kTokenNumber) {
     ParseExpression();
+  } else if (kTokenTrue == token.type || kTokenFalse == token.type) {
+    ParseCondition();
+  } else {
+    printf("Expression, string or condition expected");
+    return;
   }
 
   ConsumeNextToken();
