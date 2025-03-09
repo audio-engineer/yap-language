@@ -22,10 +22,9 @@ typedef struct KeywordEntry {
   const TokenType kType;
 } KeywordEntry;
 
-static const KeywordEntry kKeywordMap[] = {{"print", kTokenPrint},
-                                           {"if", kTokenIf},
-                                           {"for", kTokenFor},
-                                           {"endfor", kTokenEndfor}};
+static const KeywordEntry kKeywordMap[] = {
+    {"print", kTokenPrint},   {"if", kTokenIf},     {"for", kTokenFor},
+    {"endfor", kTokenEndfor}, {"true", kTokenTrue}, {"false", kTokenFalse}};
 
 #ifdef __CC65__
 static const size_t kKeywordCount = sizeof(kKeywordMap) / sizeof(KeywordEntry);
@@ -51,14 +50,14 @@ static bool IsQuotationMark() {
   source_code++;
 
   while (*source_code && '"' != *source_code) {
-    if (length < sizeof(token.text) - 1) {
-      token.text[length++] = *source_code;
+    if (length < sizeof(token.value.text) - 1) {
+      token.value.text[length++] = *source_code;
     }
 
     source_code++;
   }
 
-  token.text[length] = '\0';
+  token.value.text[length] = '\0';
 
   if ('"' == *source_code) {
     source_code++;
@@ -90,12 +89,30 @@ static bool IsCharacter() {
     case '/':
       token.type = kTokenSlash;
       break;
+    case '>':
+      source_code++;
+      if (*source_code == '=') {
+        token.type = kTokenGreaterOrEquals;
+      } else {
+        token.type = kTokenGreaterThan;
+        source_code--;
+      }
+      break;
+    case '<':
+      source_code++;
+      if (*source_code == '=') {
+        token.type = kTokenLessOrEquals;
+      } else {
+        token.type = kTokenLessThan;
+        source_code--;
+      }
+      break;
     default:
       return false;
   }
 
-  token.text[0] = *source_code;
-  token.text[1] = '\0';
+  token.value.text[0] = *source_code;
+  token.value.text[1] = '\0';
   source_code++;
 
   return true;
@@ -131,12 +148,12 @@ void ConsumeNextToken() {
     buffer[length] = '\0';
 
     // NOLINTBEGIN(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-    memset(token.text, 0, sizeof(token.text));
-    strncpy(token.text, buffer, strlen(buffer));
+    memset(token.value.text, 0, sizeof(token.value.text));
+    strncpy(token.value.text, buffer, strlen(buffer));
     // NOLINTEND(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 
     for (keyword_index = 0; keyword_index < kKeywordCount; keyword_index++) {
-      if (0 == strcmp(token.text, kKeywordMap[keyword_index].kText)) {
+      if (0 == strcmp(token.value.text, kKeywordMap[keyword_index].kText)) {
         token.type = kKeywordMap[keyword_index].kType;
 
         return;
@@ -160,7 +177,7 @@ void ConsumeNextToken() {
 #endif
 
     token.type = kTokenNumber;
-    token.value = strtol(source_code, &end, kBase);
+    token.value.number = strtol(source_code, &end, kBase);
 
     // Move source code to first character after the digit
     source_code = end;

@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #if defined(__CC65__) && !defined(NDEBUG)
 #include "benchmark.h"
@@ -8,27 +9,49 @@
 #include "lexer.h"
 #include "vm.h"
 
-// static void ParseTerm();
-static void ParseNumber();
+static bool ParseNumber();
+static bool ParseBoolean();
 
 static void ParseExpression() {
   ParseNumber();
+  ParseBoolean();
 
   ConsumeNextToken();
 
-  while (kTokenPlus == token.type || kTokenMinus == token.type) {
+  while (kTokenPlus == token.type || kTokenMinus == token.type ||
+         kTokenGreaterThan == token.type || kTokenLessThan == token.type ||
+         kTokenGreaterOrEquals == token.type ||
+         kTokenLessOrEquals == token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
 
-    ParseNumber();
+    if ((int)ParseNumber() || (int)ParseBoolean()) {
+      if (kTokenPlus == kOperation) {
+        EmitByte(kOpAdd);
+      }
 
-    if (kTokenPlus == kOperation) {
-      EmitByte(kOpAdd);
-    }
+      if (kTokenMinus == kOperation) {
+        EmitByte(kOpSubtract);
+      }
 
-    if (kTokenMinus == kOperation) {
-      EmitByte(kOpSubtract);
+      if (kTokenGreaterThan == kOperation) {
+        EmitByte(kOpGreaterThan);
+      }
+
+      if (kTokenGreaterOrEquals == kOperation) {
+        EmitByte(kOpGreaterOrEquals);
+      }
+
+      if (kTokenLessThan == kOperation) {
+        EmitByte(kOpLessThan);
+      }
+
+      if (kTokenLessOrEquals == kOperation) {
+        EmitByte(kOpLessOrEquals);
+      }
+    } else {
+      printf("Expected number or bool, got tokentype %d", (int)token.type);
     }
   }
 }
@@ -60,28 +83,46 @@ static void ParseExpression() {
  * factor -> number
  * | '(' expression ')'
  */
-static void ParseNumber() {
+static bool ParseNumber() {
   if (kTokenNumber == token.type) {
-    const long kNumber = token.value;
+    const long kNumber = token.value.number;
 
     const size_t kIndex = AddNumberConstant(kNumber);
 
     EmitByte(kOpConstant);
     EmitByte(kIndex);
+    return true;
+  }
+  return false;
+}
+
+static bool ParseBoolean() {
+  if (kTokenTrue == token.type) {
+    token.value.boolean = true;
+    AddBooleanConstant(true);
+    EmitByte(kOpTrue);
+    return true;
   }
 
-  // ParseExpression();
+  if (kTokenFalse == token.type) {
+    token.value.boolean = false;
+    AddBooleanConstant(false);
+    EmitByte(kOpFalse);
+    return true;
+  }
+
+  return false;
 }
 
 static void ParseString() {
-  const size_t kStringIndex = AddStringConstant(token.text);
+  const size_t kStringIndex = AddStringConstant(token.value.text);
 
   EmitByte(kOpConstant);
   EmitByte(kStringIndex);
 }
 
 /**
- * Grammar: print(expression)
+ * Grammar: print(something)
  */
 static void ParsePrintStatement() {
   ConsumeNextToken();
@@ -149,7 +190,7 @@ static void ParseStatement() {
 
       break;
     default:
-      printf("Unregistered statement '%s'\n", token.text);
+      printf("Unregistered statement '%s'\n", token.value.text);
 
       token.type = kTokenEof;
   }
