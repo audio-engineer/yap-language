@@ -1,6 +1,10 @@
 #ifndef VM_H
 #define VM_H
 
+#ifdef __CC65__
+#include <stdbool.h>
+#endif
+
 #if defined(__CC65__) || defined(__linux__)
 #include <stddef.h>
 #elif __APPLE__
@@ -13,6 +17,12 @@ typedef enum Opcode {
   kOpSubtract,
   kOpMultiply,
   kOpDivide,
+  kOpGreaterThan,
+  kOpGreaterOrEquals,
+  kOpLessThan,
+  kOpLessOrEquals,
+  kOpTrue,
+  kOpFalse,
   kOpPrint,
   kOpIf,
   kOpHalt
@@ -24,6 +34,8 @@ extern size_t opcode_index;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 void EmitByte(unsigned char byte);
+
+size_t AddBooleanConstant(bool boolean);
 
 size_t AddNumberConstant(long number);
 

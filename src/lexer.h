@@ -2,6 +2,10 @@
 #define LEXER_H
 
 #ifdef __CC65__
+#include <stdbool.h>
+#endif
+
+#ifdef __CC65__
 enum {
   kTokenTextBufferSize = 100,
 };
@@ -18,19 +22,28 @@ typedef enum TokenType {
   kTokenStar,
   kTokenSlash,
   kTokenEquals,
+  kTokenLessThan,
+  kTokenLessOrEquals,
+  kTokenGreaterThan,
+  kTokenGreaterOrEquals,
   kTokenLeftParenthesis,
   kTokenRightParenthesis,
   kTokenQuotationMark,
   kTokenIf,
   kTokenFor,
   kTokenEndfor,
-  kTokenPrint
+  kTokenPrint,
+  kTokenTrue,
+  kTokenFalse
 } TokenType;
 
 typedef struct Token {
   TokenType type;
-  long value;
-  char text[kTokenTextBufferSize];
+  union {
+    long number;
+    char text[kTokenTextBufferSize];
+    bool boolean;
+  } value;
 } Token;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
