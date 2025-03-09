@@ -174,6 +174,27 @@ void RunVm() {
 
         break;
       }
+      case kOpGreaterOrEquals: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+
+        const size_t kResultIndex = AddBooleanConstant(
+            *(long*)constants[kSecondTerm] >= *(long*)constants[kFirstTerm]);
+        Push(kResultIndex);
+
+        break;
+      }
+
+      case kOpLessOrEquals: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+
+        const size_t kResultIndex = AddBooleanConstant(
+            *(long*)constants[kSecondTerm] <= *(long*)constants[kFirstTerm]);
+        Push(kResultIndex);
+
+        break;
+      }
       case kOpLessThan: {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();

@@ -16,12 +16,14 @@ static void ParseExpression() {
   ConsumeNextToken();
 
   while (kTokenPlus == token.type || kTokenMinus == token.type ||
-         kTokenGreaterThan == token.type || kTokenLessThan == token.type) {
+         kTokenGreaterThan == token.type || kTokenLessThan == token.type ||
+         kTokenGreaterOrEquals == token.type ||
+         kTokenLessOrEquals == token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
 
-    if (ParseNumber()) {
+    if (ParseNumber() || ParseBoolean()) {
       if (kTokenPlus == kOperation) {
         EmitByte(kOpAdd);
       }
@@ -34,19 +36,19 @@ static void ParseExpression() {
         EmitByte(kOpGreaterThan);
       }
 
-      if (kTokenLessThan == kOperation) {
-        EmitByte(kOpLessThan);
-      }
-    } else if (ParseBoolean()) {
-      if (kTokenGreaterThan == kOperation) {
-        EmitByte(kOpGreaterThan);
+      if (kTokenGreaterOrEquals == kOperation) {
+        EmitByte(kOpGreaterOrEquals);
       }
 
       if (kTokenLessThan == kOperation) {
         EmitByte(kOpLessThan);
       }
+
+      if (kTokenLessOrEquals == kOperation) {
+        EmitByte(kOpLessOrEquals);
+      }
     } else {
-      printf("Expected number or bool, also identifiers are not implemented");
+      printf("Expected number or bool, got tokentype %d", (int)token.type);
     }
   }
 }

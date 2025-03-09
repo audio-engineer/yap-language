@@ -79,19 +79,21 @@ static bool IsCharacter() {
       token.type = kTokenSlash;
       break;
     case '>':
-      if (*source_code++ == kTokenEquals) {
+      source_code++;
+      if (*source_code == '=') {
         token.type = kTokenGreaterOrEquals;
       } else {
         token.type = kTokenGreaterThan;
-        *source_code--;
+        source_code--;
       }
       break;
     case '<':
-      if (*source_code++ == kTokenEquals) {
+      source_code++;
+      if (*source_code == '=') {
         token.type = kTokenLessOrEquals;
       } else {
         token.type = kTokenLessThan;
-        *source_code--;
+        source_code--;
       }
       break;
     default:
