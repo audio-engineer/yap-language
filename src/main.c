@@ -9,7 +9,7 @@
 #include "vm.h"
 
 #ifdef __CC65__
-enum Constants {
+enum {
   kInputBufferSize = 81,
   kClearScreen = 147,
 };
@@ -17,7 +17,7 @@ enum Constants {
 static constexpr int kInputBufferSize = 81;
 #endif
 
-void PrintHelp() {
+static void PrintHelp() {
   printf("Usage:\n");
   printf("run   Run your program.\n");
   printf("ops   Print opcodes currently in buffer.\n");

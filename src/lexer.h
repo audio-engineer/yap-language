@@ -2,7 +2,7 @@
 #define LEXER_H
 
 #ifdef __CC65__
-enum Constants {
+enum {
   kTokenTextBufferSize = 100,
 };
 #else

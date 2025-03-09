@@ -27,7 +27,7 @@ HEADERS := $(wildcard $(SRC_DIR)/*.h)
 ASSEMBLY := $(wildcard $(SRC_DIR)/*.asm)
 
 CC65_BIN_PATH = $(CC65_PATH)/bin
-CC65_LIB = $(CC65_PATH)/lib
+CC65_LIB_PATH = $(CC65_PATH)/lib
 
 CC65 = $(CC65_BIN_PATH)/cc65
 CA65 = $(CC65_BIN_PATH)/ca65
@@ -85,7 +85,7 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.s
 	$(CA65) $(AFLAGS) $<
 
 $(BUILD_DIR)/$(TARGET): $(OBJFILES) $(ASOBJS)
-	$(LD65) -o $@ $(LDFLAGS) $^ $(CC65_LIB)/$(PLATFORM).lib
+	$(LD65) -o $@ $(LDFLAGS) $^ $(CC65_LIB_PATH)/$(PLATFORM).lib
 
 clean:
 	$(RM) -r $(BUILD_DIR)/*

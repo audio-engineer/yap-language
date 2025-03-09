@@ -1,9 +1,7 @@
 #ifndef VM_H
 #define VM_H
 
-#ifdef __CC65__
-#include <stddef.h>
-#elif __linux__
+#if defined(__CC65__) || defined(__linux__)
 #include <stddef.h>
 #elif __APPLE__
 #include <sys/_types/_size_t.h>

@@ -7,7 +7,7 @@
 #include <string.h>
 
 #ifdef __CC65__
-enum Constants {
+enum {
   kOpcodesSize = 128,
   kConstantsSize = 128,
   kStringPoolSize = 512,
@@ -31,8 +31,11 @@ typedef enum ValueType {
 unsigned char opcodes[kOpcodesSize];
 size_t opcode_index = 0;
 
-static void* constants[kConstantsSize];
-static ValueType constant_types[kConstantsSize];
+typedef struct Constants {
+  const void* pointer[kConstantsSize];
+  ValueType type[kConstantsSize];
+} Constants;
+static Constants constants;
 static size_t constants_index = 0;
 
 static char string_pool[kStringPoolSize];
@@ -60,8 +63,8 @@ size_t AddNumberConstant(const long number) {
 
   number_pool[number_pool_index] = number;
 
-  constants[constants_index] = &number_pool[number_pool_index];
-  constant_types[constants_index] = kNumber;
+  constants.pointer[constants_index] = &number_pool[number_pool_index];
+  constants.type[constants_index] = kNumber;
 
   number_pool_index++;
 
@@ -87,8 +90,8 @@ size_t AddStringConstant(const char* const string) {
   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
   strncpy(current_string_pool_pointer, string, kStringLength);
 
-  constants[constants_index] = current_string_pool_pointer;
-  constant_types[constants_index] = kString;
+  constants.pointer[constants_index] = current_string_pool_pointer;
+  constants.type[constants_index] = kString;
 
   string_pool_index += kStringLength + 1;
 
@@ -143,8 +146,9 @@ void RunVm() {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
 
-        const size_t kResultIndex = AddNumberConstant(
-            *(long*)constants[kFirstTerm] + *(long*)constants[kSecondTerm]);
+        const size_t kResultIndex =
+            AddNumberConstant(*(long*)constants.pointer[kFirstTerm] +
+                              *(long*)constants.pointer[kSecondTerm]);
 
         Push(kResultIndex);
 
@@ -154,8 +158,9 @@ void RunVm() {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
 
-        const size_t kResultIndex = AddNumberConstant(
-            *(long*)constants[kSecondTerm] - *(long*)constants[kFirstTerm]);
+        const size_t kResultIndex =
+            AddNumberConstant(*(long*)constants.pointer[kSecondTerm] -
+                              *(long*)constants.pointer[kFirstTerm]);
 
         Push(kResultIndex);
 
@@ -164,14 +169,14 @@ void RunVm() {
       case kOpPrint: {
         const unsigned char kIndex = Pop();
 
-        if (kNumber == constant_types[kIndex]) {
-          printf("%ld\n", *(long*)constants[kIndex]);
+        if (kNumber == constants.type[kIndex]) {
+          printf("%ld\n", *(long*)constants.pointer[kIndex]);
 
           break;
         }
 
-        if (kString == constant_types[kIndex]) {
-          printf("%s\n", (const char* const)constants[kIndex]);
+        if (kString == constants.type[kIndex]) {
+          printf("%s\n", (const char* const)constants.pointer[kIndex]);
 
           break;
         }

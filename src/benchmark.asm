@@ -1,4 +1,4 @@
-.autoimport	on
+.autoimport on
 .importzp sp
 .import _printf
 
