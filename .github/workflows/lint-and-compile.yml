@@ -34,7 +34,7 @@ jobs:
           cmake --build build-native-release
       - name: Make Build
         run: |
-          make CC65_LIB=/usr/share/cc65/lib
+          make CC65_LIB_PATH=/usr/share/cc65/lib BUILD_TYPE=Release
       - name: Run ClangTidy
         run: |
           make lint

@@ -52,10 +52,16 @@ The project can also be built on the command line.
 
 #### Commodore 128/VICE
 
-To build the Commodore 128 target, run:
+To build the Commodore 128 debug target, run:
 
 ```shell
 make
+```
+
+You can also set the `BUILD_TYPE` variable to `Release` to build the target without debugging features enabled:
+
+```shell
+make BUILD_TYPE=Release
 ```
 
 If you want to remove all build files before creating a new build, run:
@@ -67,13 +73,13 @@ make clean
 #### Native
 
 ```shell
-cmake --preset native-release-local
-cmake --build build-native-release -j 6
+cmake --preset native-debug-local
+cmake --build build-native-debug
 ```
 
 ```shell
-cmake --preset native-debug-local
-cmake --build build-native-debug -j 6
+cmake --preset native-release-local
+cmake --build build-native-release
 ```
 
 ### Run
