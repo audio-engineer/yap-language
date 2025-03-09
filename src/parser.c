@@ -11,23 +11,43 @@ static void ParseBoolean();
 
 static void ParseExpression() {
   ParseNumber();
+  ParseBoolean();
 
   ConsumeNextToken();
 
-  while (kTokenPlus == token.type || kTokenMinus == token.type) {
+  while (kTokenPlus == token.type || kTokenMinus == token.type || kTokenGreaterThan == token.type ||kTokenLessThan == token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
 
-    ParseNumber();
+    if (ParseNumber()) {
+      if (kTokenPlus == kOperation) {
+        EmitByte(kOpAdd);
+      }
 
-    if (kTokenPlus == kOperation) {
-      EmitByte(kOpAdd);
+      if (kTokenMinus == kOperation) {
+        EmitByte(kOpSubtract);
+      }
+
+      if (kTokenGreaterThan == kOperation) {
+        EmitByte(kOpGreaterThan);
+      }
+
+      if (kTokenLessThan == kOperation) {
+        EmitByte(kOpLessThan);
+      }
+    } else if (ParseBoolean()) {
+      if (kTokenGreaterThan == kOperation) {
+        EmitByte(kOpGreaterThan);
+      }
+
+      if (kTokenLessThan == kOperation) {
+        EmitByte(kOpLessThan);
+      }
+    } else {
+      printf("Expected number or bool, also identifiers are not implemented");
     }
 
-    if (kTokenMinus == kOperation) {
-      EmitByte(kOpSubtract);
-    }
   }
 }
 
@@ -58,7 +78,7 @@ static void ParseExpression() {
  * factor -> number
  * | '(' expression ')'
  */
-static void ParseNumber() {
+static bool ParseNumber() {
   if (kTokenNumber == token.type) {
     const long kNumber = token.value.number;
 
@@ -66,17 +86,27 @@ static void ParseNumber() {
 
     EmitByte(kOpConstant);
     EmitByte(kIndex);
+    return true;
   }
+  return false;
 }
 
-static void ParseBoolean() {
+static bool ParseBoolean() {
   if (kTokenTrue == token.type) {
+    token.value.boolean = true;
     AddBooleanConstant(true);
     EmitByte(kOpTrue);
-  } else if (kTokenFalse == token.type) {
+    return true;
+  }
+
+  if (kTokenFalse == token.type) {
+    token.value.boolean = false;
     AddBooleanConstant(false);
     EmitByte(kOpFalse);
+    return true;
   }
+
+  return false;
 }
 
 static void ParseString() {
