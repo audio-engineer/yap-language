@@ -6,9 +6,7 @@
 #endif
 
 #ifdef __CC65__
-enum {
-  kTokenTextBufferSize = 100,
-};
+enum { kTokenTextBufferSize = 100 };
 #else
 static constexpr int kTokenTextBufferSize = 100;
 #endif
@@ -33,8 +31,7 @@ typedef enum TokenType {
   kTokenFor,
   kTokenEndfor,
   kTokenPrint,
-  kTokenTrue,
-  kTokenFalse
+  kTokenBoolean
 } TokenType;
 
 typedef struct Token {

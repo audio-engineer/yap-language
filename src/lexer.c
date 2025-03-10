@@ -22,9 +22,10 @@ typedef struct KeywordEntry {
   const TokenType kType;
 } KeywordEntry;
 
-static const KeywordEntry kKeywordMap[] = {
-    {"print", kTokenPrint},   {"if", kTokenIf},     {"for", kTokenFor},
-    {"endfor", kTokenEndfor}, {"true", kTokenTrue}, {"false", kTokenFalse}};
+static const KeywordEntry kKeywordMap[] = {{"print", kTokenPrint},
+                                           {"if", kTokenIf},
+                                           {"for", kTokenFor},
+                                           {"endfor", kTokenEndfor}};
 
 #ifdef __CC65__
 static const size_t kKeywordCount = sizeof(kKeywordMap) / sizeof(KeywordEntry);
@@ -118,6 +119,24 @@ static bool IsCharacter() {
   return true;
 }
 
+static bool IsBoolean() {
+  if (0 == strncmp(token.value.text, "true", strlen("true"))) {
+    token.type = kTokenBoolean;
+    token.value.boolean = true;
+
+    return true;
+  }
+
+  if (0 == strncmp(token.value.text, "false", strlen("false"))) {
+    token.type = kTokenBoolean;
+    token.value.boolean = false;
+
+    return true;
+  }
+
+  return false;
+}
+
 void ConsumeNextToken() {
   SkipWhitespace();
 
@@ -152,8 +171,14 @@ void ConsumeNextToken() {
     strncpy(token.value.text, buffer, strlen(buffer));
     // NOLINTEND(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 
+    if ((int)IsBoolean()) {
+      return;
+    }
+
+    // Check if token is a keyword
     for (keyword_index = 0; keyword_index < kKeywordCount; keyword_index++) {
-      if (0 == strcmp(token.value.text, kKeywordMap[keyword_index].kText)) {
+      if (0 == strncmp(token.value.text, kKeywordMap[keyword_index].kText,
+                       strlen(kKeywordMap[keyword_index].kText))) {
         token.type = kKeywordMap[keyword_index].kType;
 
         return;

@@ -9,109 +9,99 @@
 #include "lexer.h"
 #include "vm.h"
 
-static bool ParseNumber();
-static bool ParseBoolean();
-
-static void ParseExpression() {
-  ParseNumber();
-  ParseBoolean();
-
-  ConsumeNextToken();
-
-  while (kTokenPlus == token.type || kTokenMinus == token.type ||
-         kTokenGreaterThan == token.type || kTokenLessThan == token.type ||
-         kTokenGreaterOrEquals == token.type ||
-         kTokenLessOrEquals == token.type) {
-    const TokenType kOperation = token.type;
-
-    ConsumeNextToken();
-
-    if ((int)ParseNumber() || (int)ParseBoolean()) {
-      if (kTokenPlus == kOperation) {
-        EmitByte(kOpAdd);
-      }
-
-      if (kTokenMinus == kOperation) {
-        EmitByte(kOpSubtract);
-      }
-
-      if (kTokenGreaterThan == kOperation) {
-        EmitByte(kOpGreaterThan);
-      }
-
-      if (kTokenGreaterOrEquals == kOperation) {
-        EmitByte(kOpGreaterOrEquals);
-      }
-
-      if (kTokenLessThan == kOperation) {
-        EmitByte(kOpLessThan);
-      }
-
-      if (kTokenLessOrEquals == kOperation) {
-        EmitByte(kOpLessOrEquals);
-      }
-    } else {
-      printf("Expected number or bool, got tokentype %d", (int)token.type);
-    }
-  }
-}
-
-// static void ParseTerm() {
-//   ParseNumber();
-//
-//   while (kTokenStar == token.type || kTokenSlash == token.type) {
-//     const TokenType kOperation = token.type;
-//
-//     ConsumeNextToken();
-//
-//     ParseNumber();
-//
-//     ConsumeNextToken();
-//
-//     if (kTokenStar == kOperation) {
-//       EmitByte(kOpMultiply);
-//     }
-//
-//     if (kTokenSlash == kOperation) {
-//       EmitByte(kOpDivide);
-//     }
-//   }
-// }
-
 /**
  * Grammar:
  * factor -> number
  * | '(' expression ')'
  */
-static bool ParseNumber() {
-  if (kTokenNumber == token.type) {
-    const long kNumber = token.value.number;
+static void ParseNumber() {
+  const long kNumber = token.value.number;
 
-    const size_t kIndex = AddNumberConstant(kNumber);
+  const size_t kIndex = AddNumberConstant(kNumber, kTypeNumber);
 
-    EmitByte(kOpConstant);
-    EmitByte(kIndex);
-    return true;
-  }
-  return false;
+  EmitByte(kOpConstant);
+  EmitByte(kIndex);
 }
 
-static bool ParseBoolean() {
-  if (kTokenTrue == token.type) {
-    token.value.boolean = true;
-    AddBooleanConstant(true);
-    EmitByte(kOpTrue);
-    return true;
+static void ParseBoolean() {
+  size_t index = 0;
+
+  if (!token.value.boolean) {
+    index = AddNumberConstant(0, kTypeBoolean);
+  } else {
+    index = AddNumberConstant(1, kTypeBoolean);
   }
 
-  if (kTokenFalse == token.type) {
-    token.value.boolean = false;
-    AddBooleanConstant(false);
-    EmitByte(kOpFalse);
-    return true;
+  EmitByte(kOpConstant);
+  EmitByte(index);
+}
+
+static void ParseOperator(const TokenType operation) {
+  switch (operation) {
+    case kTokenPlus:
+      EmitByte(kOpAdd);
+      break;
+    case kTokenMinus:
+      EmitByte(kOpSubtract);
+      break;
+    case kTokenStar:
+      EmitByte(kOpMultiply);
+      break;
+    case kTokenGreaterThan:
+      EmitByte(kOpGreaterThan);
+      break;
+    case kTokenGreaterOrEquals:
+      EmitByte(kOpGreaterOrEquals);
+      break;
+    case kTokenLessThan:
+      EmitByte(kOpLessThan);
+      break;
+    case kTokenLessOrEquals:
+      EmitByte(kOpLessOrEquals);
+      break;
+    default:
+      printf("Undefined operator");
+      token.type = kTokenEof;
+  }
+}
+
+static void ParseNumericExpression() {
+  ParseNumber();
+
+  ConsumeNextToken();
+
+  if (kTokenRightParenthesis == token.type) {
+    source_code--;
+
+    return;
   }
 
-  return false;
+  while (kTokenPlus == token.type || kTokenMinus == token.type ||
+         kTokenStar == token.type || kTokenGreaterThan == token.type ||
+         kTokenLessThan == token.type || kTokenGreaterOrEquals == token.type ||
+         kTokenLessOrEquals == token.type) {
+    const TokenType kOperation = token.type;
+
+    ConsumeNextToken();
+
+    ParseNumber();
+
+    ParseOperator(kOperation);
+  }
+}
+
+static void ParseExpression() {
+  switch (token.type) {
+    case kTokenNumber:
+      ParseNumericExpression();
+      break;
+    case kTokenBoolean:
+      ParseBoolean();
+      return;
+    default:
+      printf("Could not parse expression");
+      token.type = kTokenEof;
+  }
 }
 
 static void ParseString() {

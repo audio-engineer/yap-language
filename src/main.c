@@ -9,10 +9,7 @@
 #include "vm.h"
 
 #ifdef __CC65__
-enum {
-  kInputBufferSize = 81,
-  kClearScreen = 147,
-};
+enum { kInputBufferSize = 81, kClearScreen = 147 };
 #else
 static constexpr int kInputBufferSize = 81;
 #endif
