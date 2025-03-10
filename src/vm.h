@@ -21,12 +21,16 @@ typedef enum Opcode {
   kOpGreaterOrEquals,
   kOpLessThan,
   kOpLessOrEquals,
-  kOpTrue,
-  kOpFalse,
   kOpPrint,
   kOpIf,
   kOpHalt
 } Opcode;
+
+typedef enum ConstantType {
+  kTypeNumber,
+  kTypeString,
+  kTypeBoolean
+} ConstantType;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern unsigned char opcodes[];
@@ -35,9 +39,7 @@ extern size_t opcode_index;
 
 void EmitByte(unsigned char byte);
 
-size_t AddBooleanConstant(bool boolean);
-
-size_t AddNumberConstant(long number);
+size_t AddNumberConstant(long value, ConstantType constant_type);
 
 size_t AddStringConstant(const char* string);
 

@@ -12,23 +12,15 @@ enum {
   kConstantsSize = 128,
   kStringPoolSize = 512,
   kNumberPoolSize = 64,
-  kBoolPoolSize = 16,
-  kStackSize = 16,
+  kStackSize = 16
 };
 #else
 static constexpr int kOpcodesSize = 128;
 static constexpr int kConstantsSize = 128;
 static constexpr int kStringPoolSize = 512;
 static constexpr int kNumberPoolSize = 64;
-static constexpr int kBoolPoolSize = 16;
 static constexpr int kStackSize = 16;
 #endif
-
-typedef enum ValueType {
-  kNumber,
-  kString,
-  kBool,
-} ValueType;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 unsigned char opcodes[kOpcodesSize];
@@ -36,7 +28,7 @@ size_t opcode_index = 0;
 
 typedef struct Constants {
   const void* pointer[kConstantsSize];
-  ValueType type[kConstantsSize];
+  ConstantType type[kConstantsSize];
 } Constants;
 static Constants constants;
 static size_t constants_index = 0;
@@ -46,9 +38,6 @@ static size_t string_pool_index = 0;
 
 static long number_pool[kNumberPoolSize];
 static size_t number_pool_index = 0;
-
-static bool bool_pool[kBoolPoolSize];
-static size_t bool_pool_index = 0;
 
 static size_t stack[kStackSize];
 static size_t stack_index = 0;
@@ -60,33 +49,18 @@ static size_t Pop() { return stack[--stack_index]; }
 
 void EmitByte(const unsigned char byte) { opcodes[opcode_index++] = byte; }
 
-size_t AddBooleanConstant(const bool boolean) {
-  // TODO(Martin): fix
-  // if (bool_pool_index + 1 >= kBoolPoolSize) {
-  //   return -1;
-  // }
-
-  bool_pool[bool_pool_index] = boolean;
-
-  constants.pointer[constants_index] = &bool_pool[bool_pool_index];
-  constants.type[constants_index] = kBool;
-
-  bool_pool_index++;
-
-  return constants_index++;
-}
-
-size_t AddNumberConstant(const long number) {
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+size_t AddNumberConstant(const long value, const ConstantType constant_type) {
   // TODO(Martin): Add check for number_pool overflow.
   // TODO(Martin): Can't return -1 due to size_t return type
   // if (number_pool_index + 1 >= kNumberPoolSize) {
   //   return -1;
   // }
 
-  number_pool[number_pool_index] = number;
+  number_pool[number_pool_index] = value;
 
   constants.pointer[constants_index] = &number_pool[number_pool_index];
-  constants.type[constants_index] = kNumber;
+  constants.type[constants_index] = constant_type;
 
   number_pool_index++;
 
@@ -113,7 +87,7 @@ size_t AddStringConstant(const char* const string) {
   strncpy(current_string_pool_pointer, string, kStringLength);
 
   constants.pointer[constants_index] = current_string_pool_pointer;
-  constants.type[constants_index] = kString;
+  constants.type[constants_index] = kTypeString;
 
   string_pool_index += kStringLength + 1;
 
@@ -164,25 +138,14 @@ void RunVm() {
 
         break;
       }
-      case kOpTrue: {
-        const size_t kResultIndex = AddBooleanConstant(true);
-        Pop();
-        Push(kResultIndex);
-        break;
-      }
-      case kOpFalse: {
-        const size_t kResultIndex = AddBooleanConstant(false);
-        Pop();
-        Push(kResultIndex);
-        break;
-      }
       case kOpAdd: {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
 
         const size_t kResultIndex =
             AddNumberConstant(*(long*)constants.pointer[kFirstTerm] +
-                              *(long*)constants.pointer[kSecondTerm]);
+                                  *(long*)constants.pointer[kSecondTerm],
+                              kTypeNumber);
 
         Push(kResultIndex);
 
@@ -194,7 +157,21 @@ void RunVm() {
 
         const size_t kResultIndex =
             AddNumberConstant(*(long*)constants.pointer[kSecondTerm] -
-                              *(long*)constants.pointer[kFirstTerm]);
+                                  *(long*)constants.pointer[kFirstTerm],
+                              kTypeNumber);
+
+        Push(kResultIndex);
+
+        break;
+      }
+      case kOpMultiply: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+
+        const size_t kResultIndex =
+            AddNumberConstant(*(long*)constants.pointer[kSecondTerm] *
+                                  *(long*)constants.pointer[kFirstTerm],
+                              kTypeNumber);
 
         Push(kResultIndex);
 
@@ -205,8 +182,9 @@ void RunVm() {
         const size_t kSecondTerm = Pop();
 
         const size_t kResultIndex =
-            AddBooleanConstant(0 != (*(long*)constants.pointer[kSecondTerm] >
-                                     *(long*)constants.pointer[kFirstTerm]));
+            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] >
+                                    *(long*)constants.pointer[kFirstTerm]),
+                              kTypeBoolean);
         Push(kResultIndex);
 
         break;
@@ -216,8 +194,9 @@ void RunVm() {
         const size_t kSecondTerm = Pop();
 
         const size_t kResultIndex =
-            AddBooleanConstant(0 != (*(long*)constants.pointer[kSecondTerm] >=
-                                     *(long*)constants.pointer[kFirstTerm]));
+            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] >=
+                                    *(long*)constants.pointer[kFirstTerm]),
+                              kTypeBoolean);
         Push(kResultIndex);
 
         break;
@@ -228,8 +207,9 @@ void RunVm() {
         const size_t kSecondTerm = Pop();
 
         const size_t kResultIndex =
-            AddBooleanConstant(0 != (*(long*)constants.pointer[kSecondTerm] <=
-                                     *(long*)constants.pointer[kFirstTerm]));
+            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] <=
+                                    *(long*)constants.pointer[kFirstTerm]),
+                              kTypeBoolean);
         Push(kResultIndex);
 
         break;
@@ -239,26 +219,29 @@ void RunVm() {
         const size_t kSecondTerm = Pop();
 
         const size_t kResultIndex =
-            AddBooleanConstant(0 != (*(long*)constants.pointer[kSecondTerm] <
-                                     *(long*)constants.pointer[kFirstTerm]));
+            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] <
+                                    *(long*)constants.pointer[kFirstTerm]),
+                              kTypeBoolean);
         Push(kResultIndex);
 
         break;
       }
       case kOpPrint: {
         const unsigned char kIndex = Pop();
-        if (kBool == constants.type[kIndex]) {
+
+        if (kTypeBoolean == constants.type[kIndex]) {
           printf("%s\n", *(int*)constants.pointer[kIndex] ? "true" : "false");
+
           break;
         }
 
-        if (kNumber == constants.type[kIndex]) {
+        if (kTypeNumber == constants.type[kIndex]) {
           printf("%ld\n", *(long*)constants.pointer[kIndex]);
 
           break;
         }
 
-        if (kString == constants.type[kIndex]) {
+        if (kTypeString == constants.type[kIndex]) {
           printf("%s\n", (const char* const)constants.pointer[kIndex]);
 
           break;
