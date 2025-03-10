@@ -30,14 +30,14 @@ jobs:
           source: src
       - name: CMake Configure and Build
         run: |
-          cmake -DCMAKE_C_COMPILER=$(which clang-20) --preset native-release
+          cmake -DCMAKE_C_COMPILER=clang-20 --preset native-release
           cmake --build build-native-release
       - name: Make Build
         run: |
-          make CC65_LIB_PATH=/usr/share/cc65/lib BUILD_TYPE=Release
+          make CC65_LIB_PATH=/usr/share/cc65/lib NO_CLANG_FORMAT=true BUILD_TYPE=Release
       - name: Run ClangTidy
         run: |
-          make lint
+          make lint NO_CLANG_FORMAT=true
       - name: Set Environment Variables
         run: |
           echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
