@@ -51,15 +51,31 @@ ticks_string:
     lda $dc05               ; Read Timer A value high byte into A register
     sta tmp1+1              ; Store Timer A value high byte in tmp1+1
 
+; Subtract Timer A 16-bit value from 0xffff to get the difference (result)
+; We will use the one's complement plus one method: (0xffff - x) = (~x + 1)
+    lda tmp1                ; Load Timer A value low byte into A register
+    eor #$ff                ; Low byte XOR 0xff = low byte one's complement
+    sta res1                ; Store Timer A value low byte one's complement in res1
+    lda tmp1+1              ; Load Timer A value high byte into A register
+    eor #$ff                ; High byte XOR 0xff = high byte one's complement
+    sta res1+1              ; Store Timer A value high byte one's complement in res1+1
+
+; Add 1 to result. If res1 is 0xff, the carry flag will be set and res1+1 needs to be incremented too
+    clc                     ; Clear carry flag
+    inc res1                ; Increment value low byte
+    bne done                ; If carry is zero: Go to done, otherwise go to next line.
+    inc res1+1              ; Increment value high byte
+
 ; Push format format string low and high bytes onto stack
+done:
     lda #<(ticks_string)    ; Load format string low byte into A register
     ldx #>(ticks_string)    ; Load format string high byte into A register
     jsr pushax              ; Push format string low and high bytes onto stack
 
 ; Push Timer A value low and high bytes onto stack
-    lda tmp1                ; Load Timer A value low byte into A register
-    ldx tmp1+1              ; Load Timer A value high byte into X register
-    jsr pushax              ; Push low and high bytes onto stack
+    lda res1                ; Load Timer A value low byte into A register
+    ldx res1+1              ; Load Timer A value high byte into X register
+    jsr pushax              ; Push Timer A value low and high bytes onto stack
 
 ; Call printf, pop 4 bytes off stack and return
     ldy #$04                ; Load 0x04 into Y register: Tell printf there are 4 bytes of data to print (16-bit value, \r, \0)
@@ -69,6 +85,9 @@ ticks_string:
 .segment "BSS"
 
 tmp1:
+    .res 2,$00  ; Reserve 2 bytes of zeros
+
+res1:
     .res 2,$00  ; Reserve 2 bytes of zeros
 
 .endproc
