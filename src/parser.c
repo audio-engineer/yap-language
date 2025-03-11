@@ -1,7 +1,9 @@
 #include "parser.h"
 
 #include <stdio.h>
+#ifdef __linux__
 #include <stdlib.h>
+#endif
 
 #if defined(__CC65__) && !defined(NDEBUG)
 #include "benchmark.h"
