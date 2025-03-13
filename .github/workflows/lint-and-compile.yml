@@ -8,20 +8,19 @@ jobs:
       - name: Install Dependencies
         run: |
           # Add cc65 APT Repository
-          echo 'deb https://download.opensuse.org/repositories/home:/strik/xUbuntu_23.04/ /' | \
-          sudo tee /etc/apt/sources.list.d/home:strik.list
-          curl -fsSL https://download.opensuse.org/repositories/home:strik/xUbuntu_23.04/Release.key | \
+          wget -qO- https://download.opensuse.org/repositories/home:/strik/xUbuntu_23.04/Release.key | \
           gpg --dearmor | \
-          sudo tee /etc/apt/trusted.gpg.d/home_strik.gpg > /dev/null
+          sudo tee /etc/apt/trusted.gpg.d/home_strik.gpg >/dev/null
+          sudo apt-add-repository -y 'deb https://download.opensuse.org/repositories/home:/strik/xUbuntu_23.04/ /'
 
           # Add LLVM/Clang APT Repository
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 20
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | \
+          sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc >/dev/null
+          sudo add-apt-repository -y 'deb https://apt.llvm.org/noble/ llvm-toolchain-noble-20 main'
 
           # Update and Install
           sudo apt-get update
-          sudo apt-get install -y ninja-build cc65 clang-tidy-20
+          sudo apt-get install -y ninja-build cc65 clang-20 lld-20 clang-tidy-20
       - name: Checkout
         uses: actions/checkout@v4
       - name: Run ClangFormat
