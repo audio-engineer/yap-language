@@ -70,7 +70,22 @@ static bool IsQuotationMark() {
 static bool IsCharacter() {
   switch (*source_code) {
     case '=':
-      token.type = kTokenEquals;
+      source_code++;
+      if (*source_code == '=') {
+        token.type = kTokenDoubleEquals;
+      } else {
+        token.type = kTokenEquals;
+        source_code--;
+      }
+      break;
+    case '!':
+      source_code++;
+      if (*source_code == '=') {
+        token.type = kTokenNotEquals;
+      } else {
+        token.type = kTokenNot;
+        source_code--;
+      }
       break;
     case '(':
       token.type = kTokenLeftParenthesis;
