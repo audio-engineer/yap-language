@@ -84,7 +84,11 @@ static void ParseNumericExpression() {
     return;
   }
 
-  while (kTokenEof != token.type) {
+  while (kTokenPlus == token.type || kTokenMinus == token.type ||
+         kTokenStar == token.type || kTokenGreaterThan == token.type ||
+         kTokenLessThan == token.type || kTokenGreaterOrEquals == token.type ||
+         kTokenLessOrEquals == token.type || kTokenNotEquals == token.type ||
+         kTokenDoubleEquals == token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
