@@ -66,40 +66,76 @@ static bool IsString() {
 
   token.type = kTokenString;
 
+  token.precedence = kPrecPrimary;
+
   return true;
 }
 
 static bool IsCharacter() {
   switch (*source_code) {
     case '=':
-      token.type = kTokenEquals;
+      source_code++;
+      if (*source_code == '=') {
+        token.type = kTokenEquals;
+        token.precedence = kPrecComparison;
+        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+        strncpy(token.value.text, "==", 3);
+
+      }
+
+      token.type = kTokenAssign;
+      token.precedence = kPrecAssignment;
+      source_code--;
+
+      break;
+    case '!':
+      source_code++;
+      if (*source_code == '=') {
+        token.type = kTokenNotEquals;
+        token.precedence = kPrecComparison;
+        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+        strncpy(token.value.text, "!=", 3);
+
+      }
+      token.type = kTokenNot;
+      token.precedence = kPrecUnary;
+      source_code--;
+
       break;
     case '(':
       token.type = kTokenLeftParenthesis;
+      token.precedence = kPrecPrimary;
       break;
     case ')':
       token.type = kTokenRightParenthesis;
+      token.precedence = kPrecPrimary;
       break;
     case '+':
       token.type = kTokenPlus;
+      token.precedence = kPrecTerm;
       break;
     case '-':
       token.type = kTokenMinus;
+      token.precedence = kPrecTerm;
       break;
     case '*':
       token.type = kTokenStar;
+      token.precedence = kPrecFactor;
       break;
     case '/':
       token.type = kTokenSlash;
+      token.precedence = kPrecFactor;
       break;
     case ':':
       token.type = kTokenColon;
       break;
     case '>':
       source_code++;
-
       if ('=' == *source_code) {
         token.type = kTokenGreaterOrEquals;
+        token.precedence = kPrecComparison;
+        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+        strncpy(token.value.text, ">=", 3);
 
         source_code++;
 
@@ -107,6 +143,7 @@ static bool IsCharacter() {
       }
 
       token.type = kTokenGreaterThan;
+      token.precedence = kPrecComparison;
       source_code--;
 
       break;
@@ -115,6 +152,9 @@ static bool IsCharacter() {
 
       if ('=' == *source_code) {
         token.type = kTokenLessOrEquals;
+        token.precedence = kPrecComparison;
+        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+        strncpy(token.value.text, "<=", 3);
 
         source_code++;
 
@@ -122,6 +162,7 @@ static bool IsCharacter() {
       }
 
       token.type = kTokenLessThan;
+      token.precedence = kPrecComparison;
       source_code--;
 
       break;
@@ -155,6 +196,7 @@ static bool IsBoolean(const char* const buffer) {
   if (0 == strncmp(buffer, "true", 4)) {
     token.type = kTokenBoolean;
     token.value.number = 1;
+    token.precedence = kPrecPrimary;
 
     return true;
   }
@@ -163,6 +205,7 @@ static bool IsBoolean(const char* const buffer) {
   if (0 == strncmp(buffer, "false", 5)) {
     token.type = kTokenBoolean;
     token.value.number = 0;
+    token.precedence = kPrecPrimary;
 
     return true;
   }
@@ -185,7 +228,7 @@ static bool IsNumber() {
 
   token.type = kTokenNumber;
   token.value.number = strtol(source_code, &end, kBase);
-
+  token.precedence = kPrecPrimary;
   // Move source code to first character after the digit
   source_code = end;
 
@@ -194,6 +237,7 @@ static bool IsNumber() {
 
 void ConsumeNextToken() {
   SkipWhitespace();
+  token.start_of_token = source_code;
 
   if ('\0' == *source_code) {
     token.type = kTokenEof;
@@ -224,6 +268,7 @@ void ConsumeNextToken() {
     }
 
     token.type = kTokenId;
+    token.precedence = kPrecPrimary;
 
     // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     strncpy(token.value.text, buffer, strlen(buffer) + 1);

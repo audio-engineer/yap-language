@@ -52,6 +52,12 @@ static void ParseOperator(const TokenType operation) {
     case kTokenSlash:
       EmitByte(kOpDivide);
       break;
+    case kTokenEquals:
+      EmitByte(kOpEquals);
+      break;
+    case kTokenNotEquals:
+      EmitByte(kOpNotEquals);
+      break;
     case kTokenGreaterThan:
       EmitByte(kOpGreaterThan);
       break;
@@ -70,40 +76,41 @@ static void ParseOperator(const TokenType operation) {
   }
 }
 
-static void ParseNumericExpression() {
+// NOLINTBEGIN(misc-no-recursion)
+static void ParseNumericExpression(const Precedence precedence) {
   ParseNumber();
 
   ConsumeNextToken();
 
-  if (kTokenRightParenthesis == token.type) {
-    source_code--;
-
-    return;
-  }
-
-  while (kTokenPlus == token.type || kTokenMinus == token.type ||
-         kTokenStar == token.type || kTokenGreaterThan == token.type ||
-         kTokenSlash == token.type || kTokenLessThan == token.type ||
-         kTokenGreaterOrEquals == token.type ||
-         kTokenLessOrEquals == token.type) {
+  while ((kTokenPlus == token.type || kTokenMinus == token.type ||
+          kTokenStar == token.type || kTokenGreaterThan == token.type ||
+          kTokenSlash == token.type || kTokenLessThan == token.type ||
+          kTokenGreaterOrEquals == token.type ||
+          kTokenLessOrEquals == token.type) &&
+         precedence <= token.precedence) {
     const TokenType kOperation = token.type;
+    const unsigned char kNextPrecedence = token.precedence + 1;
 
     ConsumeNextToken();
 
-    ParseNumber();
+    ParseNumericExpression(kNextPrecedence);
 
     ParseOperator(kOperation);
+
+    ConsumeNextToken();
   }
+  source_code = token.start_of_token;
 }
+// NOLINTEND(misc-no-recursion)
 
 static void ParseExpression() {
   switch (token.type) {
     case kTokenNumber:
-      ParseNumericExpression();
+      ParseNumericExpression(kPrecNone);
       break;
     case kTokenBoolean:
       ParseBoolean();
-      return;
+      break;
     default:
       printf("Could not parse expression");
       token.type = kTokenEof;
