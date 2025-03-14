@@ -154,6 +154,7 @@ static bool IsBoolean() {
 
 void ConsumeNextToken() {
   SkipWhitespace();
+  token.start_of_token = source_code;
 
   if ('\0' == *source_code) {
     token.type = kTokenEof;

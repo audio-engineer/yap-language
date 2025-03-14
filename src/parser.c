@@ -79,16 +79,12 @@ static void ParseNumericExpression() {
   ConsumeNextToken();
 
   if (kTokenRightParenthesis == token.type) {
-    source_code--;
+    source_code = token.start_of_token;
 
     return;
   }
 
-  while (kTokenPlus == token.type || kTokenMinus == token.type ||
-         kTokenStar == token.type || kTokenGreaterThan == token.type ||
-         kTokenLessThan == token.type || kTokenGreaterOrEquals == token.type ||
-         kTokenLessOrEquals == token.type || kTokenNotEquals == token.type ||
-         kTokenDoubleEquals == token.type) {
+  while (kTokenEof != token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
@@ -96,6 +92,13 @@ static void ParseNumericExpression() {
     ParseNumber();
 
     ParseOperator(kOperation);
+    ConsumeNextToken();
+
+    if (kTokenRightParenthesis == token.type) {
+      source_code = token.start_of_token;
+
+      return;
+    }
   }
 }
 
@@ -106,7 +109,7 @@ static void ParseExpression() {
       break;
     case kTokenBoolean:
       ParseBoolean();
-      return;
+      break;
     default:
       printf("Could not parse expression");
       token.type = kTokenEof;
