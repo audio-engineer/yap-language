@@ -183,7 +183,7 @@ void RunVm() {
 
         const size_t kResultIndex =
             AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] ==
-                                  *(long*)constants.pointer[kFirstTerm]),
+                                    *(long*)constants.pointer[kFirstTerm]),
                               kTypeBoolean);
         Push(kResultIndex);
         break;
@@ -193,8 +193,8 @@ void RunVm() {
         const size_t kSecondTerm = Pop();
 
         const size_t kResultIndex =
-            AddNumberConstant( 0!= (*(long*)constants.pointer[kSecondTerm] !=
-                                  *(long*)constants.pointer[kFirstTerm]),
+            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] !=
+                                    *(long*)constants.pointer[kFirstTerm]),
                               kTypeBoolean);
         Push(kResultIndex);
         break;
@@ -205,7 +205,7 @@ void RunVm() {
 
         const size_t kResultIndex =
             AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] >
-                                       *(long*)constants.pointer[kFirstTerm]),
+                                    *(long*)constants.pointer[kFirstTerm]),
                               kTypeBoolean);
         Push(kResultIndex);
 
