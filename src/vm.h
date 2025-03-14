@@ -17,6 +17,8 @@ typedef enum Opcode {
   kOpSubtract,
   kOpMultiply,
   kOpDivide,
+  kOpEquals,
+  kOpNotEquals,
   kOpGreaterThan,
   kOpGreaterOrEquals,
   kOpLessThan,

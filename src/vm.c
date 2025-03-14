@@ -194,6 +194,28 @@ void RunVm() {
         Push(result_index);
         break;
       }
+      case kOpEquals: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+
+        const size_t kResultIndex =
+            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] ==
+                                    *(long*)constants.pointer[kFirstTerm]),
+                              kTypeBoolean);
+        Push(kResultIndex);
+        break;
+      }
+      case kOpNotEquals: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+
+        const size_t kResultIndex =
+            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] !=
+                                    *(long*)constants.pointer[kFirstTerm]),
+                              kTypeBoolean);
+        Push(kResultIndex);
+        break;
+      }
       case kOpGreaterThan: {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
@@ -218,7 +240,6 @@ void RunVm() {
 
         break;
       }
-
       case kOpLessOrEquals: {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
