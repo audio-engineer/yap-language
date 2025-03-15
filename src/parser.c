@@ -78,12 +78,6 @@ static void ParseNumericExpression() {
 
   ConsumeNextToken();
 
-  if (kTokenRightParenthesis == token.type) {
-    source_code = token.start_of_token;
-
-    return;
-  }
-
   while (kTokenPlus == token.type || kTokenMinus == token.type ||
          kTokenStar == token.type || kTokenGreaterThan == token.type ||
          kTokenLessThan == token.type || kTokenGreaterOrEquals == token.type ||

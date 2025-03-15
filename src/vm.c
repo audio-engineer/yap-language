@@ -223,7 +223,6 @@ void RunVm() {
 
         break;
       }
-
       case kOpLessOrEquals: {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
