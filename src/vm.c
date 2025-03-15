@@ -177,7 +177,7 @@ void RunVm() {
 
         break;
       }
-      case kOpDoubleEquals: {
+      case kOpEquals: {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
 

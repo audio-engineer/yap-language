@@ -72,9 +72,9 @@ static bool IsCharacter() {
     case '=':
       source_code++;
       if (*source_code == '=') {
-        token.type = kTokenDoubleEquals;
-      } else {
         token.type = kTokenEquals;
+      } else {
+        token.type = kTokenAssign;
         source_code--;
       }
       break;
