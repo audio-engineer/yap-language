@@ -19,7 +19,10 @@ typedef enum TokenType {
   kTokenMinus,
   kTokenStar,
   kTokenSlash,
+  kTokenAssign,
   kTokenEquals,
+  kTokenNot,
+  kTokenNotEquals,
   kTokenLessThan,
   kTokenLessOrEquals,
   kTokenGreaterThan,
@@ -41,6 +44,7 @@ typedef struct Token {
     char text[kTokenTextBufferSize];
     bool boolean;
   } value;
+  const char* start_of_token;
 } Token;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)

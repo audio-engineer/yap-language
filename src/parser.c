@@ -49,6 +49,12 @@ static void ParseOperator(const TokenType operation) {
     case kTokenStar:
       EmitByte(kOpMultiply);
       break;
+    case kTokenEquals:
+      EmitByte(kOpEquals);
+      break;
+    case kTokenNotEquals:
+      EmitByte(kOpNotEquals);
+      break;
     case kTokenGreaterThan:
       EmitByte(kOpGreaterThan);
       break;
@@ -72,16 +78,11 @@ static void ParseNumericExpression() {
 
   ConsumeNextToken();
 
-  if (kTokenRightParenthesis == token.type) {
-    source_code--;
-
-    return;
-  }
-
   while (kTokenPlus == token.type || kTokenMinus == token.type ||
          kTokenStar == token.type || kTokenGreaterThan == token.type ||
          kTokenLessThan == token.type || kTokenGreaterOrEquals == token.type ||
-         kTokenLessOrEquals == token.type) {
+         kTokenLessOrEquals == token.type || kTokenNotEquals == token.type ||
+         kTokenEquals == token.type) {
     const TokenType kOperation = token.type;
 
     ConsumeNextToken();
@@ -89,7 +90,10 @@ static void ParseNumericExpression() {
     ParseNumber();
 
     ParseOperator(kOperation);
+
+    ConsumeNextToken();
   }
+  source_code = token.start_of_token;
 }
 
 static void ParseExpression() {
@@ -99,7 +103,7 @@ static void ParseExpression() {
       break;
     case kTokenBoolean:
       ParseBoolean();
-      return;
+      break;
     default:
       printf("Could not parse expression");
       token.type = kTokenEof;
