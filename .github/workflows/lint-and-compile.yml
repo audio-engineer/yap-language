@@ -1,5 +1,8 @@
 name: Lint and Compile
 on: pull_request
+env:
+  C128_BUILD: build-c128-release
+  NATIVE_BUILD: build-native-release
 jobs:
   lint-and-compile:
     name: Lint and Compile
@@ -30,24 +33,28 @@ jobs:
       - name: CMake Configure and Build
         run: |
           cmake -DCMAKE_C_COMPILER=clang-20 --preset native-release
-          cmake --build build-native-release
+          cmake --build $NATIVE_BUILD
       - name: Make Build
         run: |
           make CC65_LIB_PATH=/usr/share/cc65/lib NO_CLANG_FORMAT=true BUILD_TYPE=Release
       - name: Run ClangTidy
         run: |
           make lint NO_CLANG_FORMAT=true
+      - name: Run CTest
+        uses: threeal/ctest-action@v1.1.0
+        with:
+          args: --test-dir $NATIVE_BUILD
       - name: Set Environment Variables
         run: |
           echo "sha_short=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
       - name: Rename Executable
         run: |
-          sudo mv build-c128-release/yap-lang.prg build-c128-release/yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
-          sudo mv build-native-release/yap-lang-native build-native-release/yap-lang-native-${{ github.head_ref }}-${{ env.sha_short }}
+          sudo mv $C128_BUILD/yap-lang.prg $C128_BUILD/yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
+          sudo mv $NATIVE_BUILD/yap-lang-native $NATIVE_BUILD/yap-lang-native-${{ github.head_ref }}-${{ env.sha_short }}
       - name: Upload Executable
         uses: actions/upload-artifact@v4
         with:
           name: yap-lang-${{ github.head_ref }}-${{ env.sha_short }}
           path: |
-            build-c128-release/yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
-            build-native-release/yap-lang-native-${{ github.head_ref }}-${{ env.sha_short }}
+            ${{ env.C128_BUILD }}/yap-lang-${{ github.head_ref }}-${{ env.sha_short }}.prg
+            ${{ env.NATIVE_BUILD }}/yap-lang-native-${{ github.head_ref }}-${{ env.sha_short }}

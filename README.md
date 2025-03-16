@@ -82,6 +82,14 @@ cmake --preset native-release-local
 cmake --build build-native-release
 ```
 
+### Tests
+
+Tests can be run either in CLion by running the `All CTest` configuration or on the command line by running:
+
+```shell
+ctest --test-dir build-native-release
+```
+
 ### Run
 
 ```shell
