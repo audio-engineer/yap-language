@@ -177,6 +177,23 @@ void RunVm() {
 
         break;
       }
+      case kOpDivide: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+        size_t result_index = 0;
+        if (*(long*)constants.pointer[kFirstTerm] == 0) {
+          printf("Error: Division by zero\n");
+          return;  // Halt execution on division by zero
+        }
+
+        result_index =
+            AddNumberConstant(*(long*)constants.pointer[kSecondTerm] /
+                                  *(long*)constants.pointer[kFirstTerm],
+                              kTypeNumber);
+
+        Push(result_index);
+        break;
+      }
       case kOpGreaterThan: {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();

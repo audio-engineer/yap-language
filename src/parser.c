@@ -49,6 +49,9 @@ static void ParseOperator(const TokenType operation) {
     case kTokenStar:
       EmitByte(kOpMultiply);
       break;
+    case kTokenSlash:
+      EmitByte(kOpDivide);
+      break;
     case kTokenGreaterThan:
       EmitByte(kOpGreaterThan);
       break;
@@ -80,7 +83,8 @@ static void ParseNumericExpression() {
 
   while (kTokenPlus == token.type || kTokenMinus == token.type ||
          kTokenStar == token.type || kTokenGreaterThan == token.type ||
-         kTokenLessThan == token.type || kTokenGreaterOrEquals == token.type ||
+         kTokenSlash == token.type || kTokenLessThan == token.type ||
+         kTokenGreaterOrEquals == token.type ||
          kTokenLessOrEquals == token.type) {
     const TokenType kOperation = token.type;
 
