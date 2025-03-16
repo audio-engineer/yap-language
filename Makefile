@@ -33,7 +33,11 @@ PLATFORM := c128
 BUILD_TYPE ?= Debug
 
 SRC_DIR := src
+ifeq ($(BUILD_TYPE),Release)
 BUILD_DIR := build-$(PLATFORM)-release
+else
+BUILD_DIR := build-$(PLATFORM)-debug
+endif
 
 SOURCES := $(wildcard $(SRC_DIR)/*.c)
 HEADERS := $(wildcard $(SRC_DIR)/*.h)
