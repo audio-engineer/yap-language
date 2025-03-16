@@ -38,10 +38,12 @@ BUILD_DIR := build-$(PLATFORM)-release
 else
 BUILD_DIR := build-$(PLATFORM)-debug
 endif
+TESTS_DIR := tests
 
 SOURCES := $(wildcard $(SRC_DIR)/*.c)
 HEADERS := $(wildcard $(SRC_DIR)/*.h)
 ASSEMBLY := $(wildcard $(SRC_DIR)/*.asm)
+TESTS := $(wildcard $(TESTS_DIR)/*.c)
 
 CC65_BIN_PATH := $(CC65_PATH)/bin
 CC65_LIB_PATH := $(CC65_PATH)/lib
@@ -109,7 +111,7 @@ clean:
 
 lint:
 	$(CLANG_TIDY) --config-file .clang-tidy --extra-arg=-std=c99 --extra-arg=-D__CC65__ --extra-arg=-DNNEAR $(SOURCES) $(HEADERS)
-	$(CLANG_TIDY) --config-file .clang-tidy -p build-native-release $(SOURCES) $(HEADERS)
+	$(CLANG_TIDY) --config-file .clang-tidy -p build-native-release $(SOURCES) $(HEADERS) $(TESTS)
 
 format:
-	$(CLANG_FORMAT) -i $(SOURCES) $(HEADERS)
+	$(CLANG_FORMAT) -i $(SOURCES) $(HEADERS) $(TESTS)
