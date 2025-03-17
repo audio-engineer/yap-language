@@ -92,21 +92,37 @@ static bool IsCharacter() {
       break;
     case '>':
       source_code++;
-      if (*source_code == '=') {
+
+      if ('=' == *source_code) {
         token.type = kTokenGreaterOrEquals;
-      } else {
-        token.type = kTokenGreaterThan;
-        source_code--;
+        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+        strncpy(token.value.text, ">=", 3);
+
+        source_code++;
+
+        return true;
       }
+
+      token.type = kTokenGreaterThan;
+      source_code--;
+
       break;
     case '<':
       source_code++;
-      if (*source_code == '=') {
+
+      if ('=' == *source_code) {
         token.type = kTokenLessOrEquals;
-      } else {
-        token.type = kTokenLessThan;
-        source_code--;
+        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+        strncpy(token.value.text, "<=", 3);
+
+        source_code++;
+
+        return true;
       }
+
+      token.type = kTokenLessThan;
+      source_code--;
+
       break;
     default:
       return false;

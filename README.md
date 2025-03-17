@@ -87,8 +87,12 @@ cmake --build build-native-release
 Tests can be run either in CLion by running the `All CTest` configuration or on the command line by running:
 
 ```shell
-ctest --test-dir build-native-release
+make test
 ```
+
+If the above command is run on the command line, an additional coverage report will be generated in
+[`build-native-debug/coverage.html`](./build-native-debug/coverage.html).
+It can be viewed in the browser.
 
 ### Run
 

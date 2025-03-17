@@ -32,6 +32,8 @@ add_library(${LIBRARY_NAME}
 target_include_directories(${LIBRARY_NAME} PUBLIC src)
 
 # Native executable
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-instr-generate -fcoverage-mapping")
+
 add_executable(${EXECUTABLE_NAME} src/main.c)
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${LIBRARY_NAME})

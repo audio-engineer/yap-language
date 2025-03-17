@@ -20,6 +20,24 @@ static void TestSkipWhitespace() {
 
   ConsumeNextToken();
   TEST_ASSERT_EQUAL_INT(kTokenPrint, token.type);
+  TEST_ASSERT_EQUAL_STRING("print", token.value.text);
+
+  source_code = "print(  3 +2   )";
+
+  ConsumeNextToken();
+  TEST_ASSERT_EQUAL_INT(kTokenPrint, token.type);
+  TEST_ASSERT_EQUAL_STRING("print", token.value.text);
+
+  ConsumeNextToken();
+  ConsumeNextToken();
+  TEST_ASSERT_EQUAL_INT(kTokenNumber, token.type);
+  TEST_ASSERT_EQUAL_INT(3, token.value.number);
+
+  ConsumeNextToken();
+  ConsumeNextToken();
+  ConsumeNextToken();
+  TEST_ASSERT_EQUAL_INT(kTokenRightParenthesis, token.type);
+  TEST_ASSERT_EQUAL_STRING(")", token.value.text);
 }
 
 static void TestPrintArithmetic() {
@@ -62,6 +80,38 @@ static void TestString() {
   TEST_ASSERT_EQUAL_STRING("Hello, world!", token.value.text);
 }
 
+static void TestGreaterThan() {
+  source_code = ">flkd";
+
+  ConsumeNextToken();
+  TEST_ASSERT_EQUAL_INT(kTokenGreaterThan, token.type);
+  TEST_ASSERT_EQUAL_STRING(">", token.value.text);
+}
+
+static void TestLessThan() {
+  source_code = "<jvmv";
+
+  ConsumeNextToken();
+  TEST_ASSERT_EQUAL_INT(kTokenLessThan, token.type);
+  TEST_ASSERT_EQUAL_STRING("<", token.value.text);
+}
+
+static void TestGreaterThanOrEqualTo() {
+  source_code = ">=fjkle";
+
+  ConsumeNextToken();
+  TEST_ASSERT_EQUAL_INT(kTokenGreaterOrEquals, token.type);
+  TEST_ASSERT_EQUAL_STRING(">=", token.value.text);
+}
+
+static void TestLessThanOrEqualTo() {
+  source_code = "<=radf";
+
+  ConsumeNextToken();
+  TEST_ASSERT_EQUAL_INT(kTokenLessOrEquals, token.type);
+  TEST_ASSERT_EQUAL_STRING("<=", token.value.text);
+}
+
 int main() {
   UNITY_BEGIN();
 
@@ -69,6 +119,10 @@ int main() {
   RUN_TEST(TestSkipWhitespace);
   RUN_TEST(TestPrintArithmetic);
   RUN_TEST(TestString);
+  RUN_TEST(TestGreaterThan);
+  RUN_TEST(TestLessThan);
+  RUN_TEST(TestGreaterThanOrEqualTo);
+  RUN_TEST(TestLessThanOrEqualTo);
 
   return UNITY_END();
 }

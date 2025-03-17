@@ -4,30 +4,6 @@ include .env
 export
 endif
 
-# Detect ClangTidy
-ifneq ($(shell command -v clang-tidy-20 2>/dev/null),)
-CLANG_TIDY := clang-tidy-20
-else ifneq ($(shell command -v clang-tidy-19 2>/dev/null),)
-CLANG_TIDY := clang-tidy-19
-else ifneq ($(shell command -v $(LLVM_BIN_PATH)/clang-tidy 2>/dev/null),)
-CLANG_TIDY := $(LLVM_BIN_PATH)/clang-tidy
-else
-$(error "ClangTidy could not be detected")
-endif
-
-# Detect ClangFormat
-ifeq ($(NO_CLANG_FORMAT),true)
-CLANG_FORMAT :=
-else ifneq ($(shell command -v clang-format-20 2>/dev/null),)
-CLANG_FORMAT := clang-format-20
-else ifneq ($(shell command -v clang-format-19 2>/dev/null),)
-CLANG_FORMAT := clang-format-19
-else ifneq ($(shell command -v $(LLVM_BIN_PATH)/clang-format 2>/dev/null),)
-CLANG_FORMAT := $(LLVM_BIN_PATH)/clang-format
-else
-$(error "ClangFormat could not be detected")
-endif
-
 TARGET := yap-lang.prg
 PLATFORM := c128
 BUILD_TYPE ?= Debug
@@ -72,13 +48,16 @@ ifeq ($(BUILD_TYPE),Release)
 CFLAGS += -DNDEBUG
 endif
 AFLAGS :=
-LDFLAGS := -t $(PLATFORM) -m $(BUILD_DIR)/yap-lang.map
+LDFLAGS := -t $(PLATFORM)
+ifeq ($(BUILD_TYPE),Debug)
+LDFLAGS += -m $(BUILD_DIR)/yap-lang.map
+endif
 
 ASMFILES := $(patsubst %.c,$(BUILD_DIR)/%.s,$(notdir $(SOURCES)))
 OBJFILES := $(patsubst %.c,$(BUILD_DIR)/%.o,$(notdir $(SOURCES)))
 ASMOBJFILES := $(patsubst %.asm,$(BUILD_DIR)/%.o,$(notdir $(ASSEMBLY)))
 
-.PHONY: all clean lint format
+.PHONY: all clean lint format test
 
 all: $(BUILD_DIR)/$(TARGET)
 
@@ -110,8 +89,10 @@ clean:
 	$(RM) -r $(BUILD_DIR)/*
 
 lint:
-	$(CLANG_TIDY) --config-file .clang-tidy --extra-arg=-std=c99 --extra-arg=-D__CC65__ --extra-arg=-DNNEAR $(SOURCES) $(HEADERS)
-	$(CLANG_TIDY) --config-file .clang-tidy -p build-native-release $(SOURCES) $(HEADERS) $(TESTS)
+	./llvm-tools lint
 
 format:
-	$(CLANG_FORMAT) -i $(SOURCES) $(HEADERS) $(TESTS)
+	./llvm-tools format
+
+test:
+	./llvm-tools test
