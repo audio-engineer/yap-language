@@ -1,0 +1,145 @@
+#!/usr/bin/env sh
+
+set -eu
+
+if [ -f .env ]; then
+  . ./.env
+fi
+
+color_green='\033[32m'
+color_red='\033[0;31m'
+color_reset='\033[0m'
+build_native_debug_dir=build-native-debug
+native_debug_bin=yap-lang-native
+native_debug_test_bin=yap-lang-native-tests
+
+info() {
+  printf "%b%s%b\n" "$color_green" "$1" "$color_reset"
+}
+
+error() {
+  printf "%b%s%b\n" "$color_red" "$1" "$color_reset"
+}
+
+if command -v clang-20 >/dev/null 2>&1; then
+  clang_tidy=clang-tidy-20
+  clang_format=clang-format-20
+  llvm_profdata=llvm-profdata-20
+  llvm_cov=llvm-cov-20
+elif command -v clang-19 >/dev/null 2>&1; then
+  error 'You are running LLVM/Clang 19. Install LLVM/Clang 20!'
+
+  clang_tidy=clang-tidy-19
+  clang_format=clang-format-19
+  llvm_profdata=llvm-profdata-19
+  llvm_cov=llvm-cov-19
+else
+  if [ -z "$LLVM_BIN_PATH" ]; then
+    error 'Clang not found in PATH, and no LLVM_BIN_PATH in .env'
+
+    exit 1
+  fi
+
+  clang_tidy=$LLVM_BIN_PATH/clang-tidy
+  clang_format=$LLVM_BIN_PATH/clang-format
+  llvm_profdata=$LLVM_BIN_PATH/llvm-profdata
+  llvm_cov=$LLVM_BIN_PATH/llvm-cov
+fi
+
+assert_debug_target() {
+  if [ ! -f "$build_native_debug_dir/$1" ]; then
+    error "The '$1' target with the 'Debug' build configuration
+has not been built yet.
+Build the target using CMake."
+
+    exit 1
+  fi
+}
+
+run_clang_tidy() {
+  assert_debug_target $native_debug_bin
+
+  info 'Running ClangTidy on the Commodore version...'
+  set -- src/*.[ch]
+  $clang_tidy --quiet --config-file .clang-tidy --extra-arg=-std=c99 --extra-arg=-D__CC65__ --extra-arg=-DNNEAR "$@"
+
+  echo
+  info 'Running ClangTidy on the native version...'
+  set -- "$@" tests/*.[ch]
+  $clang_tidy --quiet --config-file .clang-tidy -p $build_native_debug_dir "$@"
+}
+
+run_cppcheck() {
+  if ! command -v cppcheck >/dev/null 2>&1; then
+    error 'You don'\''t have Cppcheck installed.'
+    error 'Install Cppcheck by running '\''sudo apt install cppcheck'\''.'
+
+    exit 1
+  fi
+
+  assert_debug_target $native_debug_bin
+
+  info 'Running Cppcheck on all source files...'
+  cppcheck \
+    --std=c23 \
+    --enable=all \
+    --check-level=exhaustive \
+    --suppress=*:*unity.c \
+    --suppress=missingIncludeSystem:* \
+    --project=$build_native_debug_dir/compile_commands.json \
+    --cppcheck-build-dir=$build_native_debug_dir
+}
+
+run_clang_format() {
+  info 'Running ClangFormat on all source files...'
+  $clang_format --verbose -i src/*.[ch] tests/*.[ch]
+}
+
+run_tests() {
+  assert_debug_target $native_debug_test_bin
+
+  info 'Running CTest...'
+  ctest --extra-verbose --test-dir $build_native_debug_dir
+
+  echo
+  info 'Running llvm-profdata...'
+  $llvm_profdata merge \
+    -sparse \
+    $build_native_debug_dir/default.profraw \
+    -o $build_native_debug_dir/default.profdata
+
+  echo
+  info 'Running llvm-cov report...'
+  $llvm_cov report \
+    $build_native_debug_dir/$native_debug_test_bin \
+    -instr-profile=$build_native_debug_dir/default.profdata \
+    --ignore-filename-regex='(unity|unity_internals)'
+
+  echo
+  info 'Running llvm-cov show...'
+  $llvm_cov show \
+    $build_native_debug_dir/$native_debug_test_bin \
+    -instr-profile=$build_native_debug_dir/default.profdata \
+    --ignore-filename-regex='(unity|unity_internals)' \
+    -format=html \
+    >$build_native_debug_dir/coverage.html
+}
+
+case "$1" in
+lint)
+  run_clang_tidy
+  echo
+  run_cppcheck
+  ;;
+format)
+  run_clang_format
+  ;;
+test)
+  run_tests
+  ;;
+*)
+  printf "Usage:\n%s [lint|format|test]\n" "$0"
+
+  exit 1
+  ;;
+esac

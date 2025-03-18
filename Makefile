@@ -89,10 +89,10 @@ clean:
 	$(RM) -r $(BUILD_DIR)/*
 
 lint:
-	./llvm-tools lint
+	./tools lint
 
 format:
-	./llvm-tools format
+	./tools format
 
 test:
-	./llvm-tools test
+	./tools test
