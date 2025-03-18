@@ -24,7 +24,7 @@ jobs:
 
           # Update and Install
           sudo apt-get update
-          sudo apt-get install -y ninja-build cc65 clang-20 lld-20 clang-tidy-20
+          sudo apt-get install -y ninja-build cc65 clang-20 lld-20 clang-tidy-20 cppcheck
       - name: Checkout
         uses: actions/checkout@v4
       - name: Run ClangFormat
