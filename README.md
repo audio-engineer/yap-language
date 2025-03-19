@@ -91,8 +91,8 @@ make test
 ```
 
 If the above command is run on the command line, an additional coverage report will be generated in
-[`build-native-debug/coverage.html`](./build-native-debug/coverage.html).
-It can be viewed in the browser.
+[`build-native-debug/coverage/`](./build-native-debug/coverage).
+Open the `index.html` file in a browser to view the report.
 
 ### Run
 

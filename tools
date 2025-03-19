@@ -122,7 +122,7 @@ run_tests() {
     -instr-profile=$build_native_debug_dir/default.profdata \
     --ignore-filename-regex='(unity|unity_internals)' \
     -format=html \
-    >$build_native_debug_dir/coverage.html
+    --output-dir=$build_native_debug_dir/coverage
 }
 
 case "$1" in
