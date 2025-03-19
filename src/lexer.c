@@ -80,7 +80,6 @@ static bool IsCharacter() {
         token.precedence = kPrecComparison;
         // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
         strncpy(token.value.text, "==", 3);
-
       }
 
       token.type = kTokenAssign;
@@ -95,7 +94,6 @@ static bool IsCharacter() {
         token.precedence = kPrecComparison;
         // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
         strncpy(token.value.text, "!=", 3);
-
       }
       token.type = kTokenNot;
       token.precedence = kPrecUnary;
