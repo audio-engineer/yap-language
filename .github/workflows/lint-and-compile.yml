@@ -1,9 +1,8 @@
 name: Lint and Compile
 on: pull_request
 env:
-  C128_BUILD: build-c128-release
-  NATIVE_DEBUG_BUILD: build-native-debug
-  NATIVE_RELEASE_BUILD: build-native-release
+  C128_BUILD_DIR: build-c128-release
+  NATIVE_DEBUG_BUILD_DIR: build-native-debug
 jobs:
   lint-and-compile:
     name: Lint and Compile
@@ -34,10 +33,7 @@ jobs:
       - name: CMake Configure and Build
         run: |
           cmake -DCMAKE_C_COMPILER=clang-20 --preset native-debug
-          cmake --build $NATIVE_DEBUG_BUILD
-
-          cmake -DCMAKE_C_COMPILER=clang-20 --preset native-release
-          cmake --build $NATIVE_RELEASE_BUILD
+          cmake --build $NATIVE_DEBUG_BUILD_DIR
       - name: Make Build
         run: |
           make CC65_LIB_PATH=/usr/share/cc65/lib BUILD_TYPE=Release
@@ -52,17 +48,17 @@ jobs:
           echo "ID=$GITHUB_HEAD_REF-$(git rev-parse --short $GITHUB_SHA)" >> "$GITHUB_ENV"
       - name: Rename Files
         run: |
-          sudo mv $C128_BUILD/yap-lang.prg $C128_BUILD/yap-lang-$ID.prg
-          sudo mv $NATIVE_RELEASE_BUILD/yap-lang-native $NATIVE_RELEASE_BUILD/yap-lang-native-$ID
+          sudo mv $C128_BUILD_DIR/yap-lang.prg $C128_BUILD_DIR/yap-lang-$ID.prg
+          sudo mv $NATIVE_DEBUG_BUILD_DIR/yap-lang-native $NATIVE_DEBUG_BUILD_DIR/yap-lang-native-$ID
       - name: Upload Executables
         uses: actions/upload-artifact@v4
         with:
           name: yap-lang-${{ env.ID }}
           path: |
-            ${{ env.C128_BUILD }}/yap-lang-${{ env.ID }}.prg
-            ${{ env.NATIVE_RELEASE_BUILD }}/yap-lang-native-${{ env.ID }}
+            ${{ env.C128_BUILD_DIR }}/yap-lang-${{ env.ID }}.prg
+            ${{ env.NATIVE_DEBUG_BUILD_DIR }}/yap-lang-native-${{ env.ID }}
       - name: Upload Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ env.ID }}
-          path: ${{ env.NATIVE_DEBUG_BUILD }}/coverage/**
+          path: ${{ env.NATIVE_DEBUG_BUILD_DIR }}/coverage/**
