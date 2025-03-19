@@ -112,6 +112,30 @@ static void TestLessThanOrEqualTo() {
   TEST_ASSERT_EQUAL_STRING("<=", token.value.text);
 }
 
+static void TestBooleanLiteral() {
+  source_code = "true";
+
+  ConsumeNextToken();
+  TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
+  TEST_ASSERT_EQUAL_INT(1, token.value.number);
+
+  source_code = "false";
+
+  ConsumeNextToken();
+  TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
+  TEST_ASSERT_EQUAL_INT(0, token.value.number);
+
+  source_code = "x: bool=false";
+
+  ConsumeNextToken();
+  ConsumeNextToken();
+  ConsumeNextToken();
+  ConsumeNextToken();
+  ConsumeNextToken();
+  TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
+  TEST_ASSERT_EQUAL_INT(0, token.value.number);
+}
+
 int main() {
   UNITY_BEGIN();
 
@@ -123,6 +147,7 @@ int main() {
   RUN_TEST(TestLessThan);
   RUN_TEST(TestGreaterThanOrEqualTo);
   RUN_TEST(TestLessThanOrEqualTo);
+  RUN_TEST(TestBooleanLiteral);
 
   return UNITY_END();
 }
