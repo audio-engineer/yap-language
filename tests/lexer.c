@@ -7,147 +7,217 @@ void setUp() {}
 
 void tearDown() {}
 
-// TODO(Martin): Fix lexer so this test passes
-static void TestInvalidToken() {
-  source_code = "jj#@%!$";
+static void TestUndefinedToken() {
+  source_code = "^";
 
-  ConsumeNextToken();
-  TEST_ASSERT_EQUAL(kTokenEof, token.type);
+  ConsumeNextToken();  // ^
+  TEST_ASSERT_EQUAL_INT(kTokenEof, token.type);
 }
 
 static void TestSkipWhitespace() {
   source_code = "     print(3+2)";
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // print
   TEST_ASSERT_EQUAL_INT(kTokenPrint, token.type);
-  TEST_ASSERT_EQUAL_STRING("print", token.value.text);
 
   source_code = "print(  3 +2   )";
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // print
   TEST_ASSERT_EQUAL_INT(kTokenPrint, token.type);
-  TEST_ASSERT_EQUAL_STRING("print", token.value.text);
 
-  ConsumeNextToken();
-  ConsumeNextToken();
+  ConsumeNextToken();  // (
+  ConsumeNextToken();  // 3
   TEST_ASSERT_EQUAL_INT(kTokenNumber, token.type);
   TEST_ASSERT_EQUAL_INT(3, token.value.number);
 
-  ConsumeNextToken();
-  ConsumeNextToken();
-  ConsumeNextToken();
+  ConsumeNextToken();  // +
+  ConsumeNextToken();  // 2
+  ConsumeNextToken();  // )
   TEST_ASSERT_EQUAL_INT(kTokenRightParenthesis, token.type);
-  TEST_ASSERT_EQUAL_STRING(")", token.value.text);
 }
 
 static void TestPrintArithmetic() {
   source_code = "print(3+2)";
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // print
   TEST_ASSERT_EQUAL_INT(kTokenPrint, token.type);
-  TEST_ASSERT_EQUAL_STRING("print", token.value.text);
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // (
   TEST_ASSERT_EQUAL_INT(kTokenLeftParenthesis, token.type);
-  TEST_ASSERT_EQUAL_STRING("(", token.value.text);
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // 3
   TEST_ASSERT_EQUAL_INT(kTokenNumber, token.type);
   TEST_ASSERT_EQUAL_INT(3, token.value.number);
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // +
   TEST_ASSERT_EQUAL_INT(kTokenPlus, token.type);
-  TEST_ASSERT_EQUAL_STRING("+", token.value.text);
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // 2
   TEST_ASSERT_EQUAL_INT(kTokenNumber, token.type);
   TEST_ASSERT_EQUAL_INT(2, token.value.number);
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // )
   TEST_ASSERT_EQUAL_INT(kTokenRightParenthesis, token.type);
-  TEST_ASSERT_EQUAL_STRING(")", token.value.text);
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // EOF
   TEST_ASSERT_EQUAL_INT(kTokenEof, token.type);
 }
 
-// TODO(Martin): Fix lexer so strings have their own token type
+static void TestMinus() {
+  source_code = "20-15";
+
+  ConsumeNextToken();  // 20
+  ConsumeNextToken();  // -
+  TEST_ASSERT_EQUAL_INT(kTokenMinus, token.type);
+}
+
+static void TestStar() {
+  source_code = "4*97";
+
+  ConsumeNextToken();  // 4
+  ConsumeNextToken();  // *
+  TEST_ASSERT_EQUAL_INT(kTokenStar, token.type);
+}
+
+static void TestSlash() {
+  source_code = "60/3";
+
+  ConsumeNextToken();  // 60
+  ConsumeNextToken();  // /
+  TEST_ASSERT_EQUAL_INT(kTokenSlash, token.type);
+}
+
 static void TestString() {
   source_code = "\"Hello, world!\"";
 
-  ConsumeNextToken();
-  TEST_ASSERT_EQUAL_INT(kTokenQuotationMark, token.type);
+  ConsumeNextToken();  // Hello, world!
+  TEST_ASSERT_EQUAL_INT(kTokenString, token.type);
   TEST_ASSERT_EQUAL_STRING("Hello, world!", token.value.text);
+}
+
+static void TestPrintString() {
+  source_code = "print(\"Hello, world!\")";
+
+  ConsumeNextToken();  // print
+  ConsumeNextToken();  // (
+  ConsumeNextToken();  // Hello, world!
+  TEST_ASSERT_EQUAL_INT(kTokenString, token.type);
+  TEST_ASSERT_EQUAL_STRING("Hello, world!", token.value.text);
+}
+
+static void TestIdentifier() {
+  source_code = "variable:int=";
+
+  ConsumeNextToken();  // variable
+  TEST_ASSERT_EQUAL_INT(kTokenId, token.type);
+  TEST_ASSERT_EQUAL_STRING("variable", token.value.text);
 }
 
 static void TestGreaterThan() {
   source_code = ">flkd";
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // >
   TEST_ASSERT_EQUAL_INT(kTokenGreaterThan, token.type);
-  TEST_ASSERT_EQUAL_STRING(">", token.value.text);
 }
 
 static void TestLessThan() {
   source_code = "<jvmv";
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // <
   TEST_ASSERT_EQUAL_INT(kTokenLessThan, token.type);
-  TEST_ASSERT_EQUAL_STRING("<", token.value.text);
 }
 
 static void TestGreaterThanOrEqualTo() {
   source_code = ">=fjkle";
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // >=
   TEST_ASSERT_EQUAL_INT(kTokenGreaterOrEquals, token.type);
-  TEST_ASSERT_EQUAL_STRING(">=", token.value.text);
 }
 
 static void TestLessThanOrEqualTo() {
   source_code = "<=radf";
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // <=
   TEST_ASSERT_EQUAL_INT(kTokenLessOrEquals, token.type);
-  TEST_ASSERT_EQUAL_STRING("<=", token.value.text);
 }
 
 static void TestBooleanLiteral() {
   source_code = "true";
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // true
   TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
   TEST_ASSERT_EQUAL_INT(1, token.value.number);
 
   source_code = "false";
 
-  ConsumeNextToken();
+  ConsumeNextToken();  // false
   TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
   TEST_ASSERT_EQUAL_INT(0, token.value.number);
 
   source_code = "x: bool=false";
 
-  ConsumeNextToken();
-  ConsumeNextToken();
-  ConsumeNextToken();
-  ConsumeNextToken();
-  ConsumeNextToken();
+  ConsumeNextToken();  // x
+  ConsumeNextToken();  // :
+  ConsumeNextToken();  // bool
+  ConsumeNextToken();  // =
+  ConsumeNextToken();  // false
   TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
   TEST_ASSERT_EQUAL_INT(0, token.value.number);
+}
+
+static void TestIf() {
+  source_code = "if(true)print(\"Hello, world!\")endif";
+
+  ConsumeNextToken();  // if
+  TEST_ASSERT_EQUAL_INT(kTokenIf, token.type);
+
+  ConsumeNextToken();  // (
+  ConsumeNextToken();  // true
+  ConsumeNextToken();  // )
+  ConsumeNextToken();  // print
+  ConsumeNextToken();  // (
+  ConsumeNextToken();  // Hello, world!
+  ConsumeNextToken();  // )
+  ConsumeNextToken();  // endif
+  TEST_ASSERT_EQUAL_INT(kTokenEndif, token.type);
+}
+
+static void TestFor() {
+  source_code = "for(true)print(\"Hello, world!\")endfor";
+
+  ConsumeNextToken();  // for
+  TEST_ASSERT_EQUAL_INT(kTokenFor, token.type);
+
+  ConsumeNextToken();  // (
+  ConsumeNextToken();  // true
+  ConsumeNextToken();  // )
+  ConsumeNextToken();  // print
+  ConsumeNextToken();  // (
+  ConsumeNextToken();  // Hello, world!
+  ConsumeNextToken();  // )
+  ConsumeNextToken();  // endif
+  TEST_ASSERT_EQUAL_INT(kTokenEndfor, token.type);
 }
 
 int main() {
   UNITY_BEGIN();
 
-  // RUN_TEST(TestInvalidToken);
+  RUN_TEST(TestUndefinedToken);
   RUN_TEST(TestSkipWhitespace);
   RUN_TEST(TestPrintArithmetic);
+  RUN_TEST(TestMinus);
+  RUN_TEST(TestStar);
+  RUN_TEST(TestSlash);
   RUN_TEST(TestString);
+  RUN_TEST(TestPrintString);
+  RUN_TEST(TestIdentifier);
   RUN_TEST(TestGreaterThan);
   RUN_TEST(TestLessThan);
   RUN_TEST(TestGreaterThanOrEqualTo);
   RUN_TEST(TestLessThanOrEqualTo);
   RUN_TEST(TestBooleanLiteral);
+  RUN_TEST(TestIf);
+  RUN_TEST(TestFor);
 
   return UNITY_END();
 }

@@ -24,6 +24,7 @@ typedef struct KeywordEntry {
 
 static const KeywordEntry kKeywordMap[] = {{"print", kTokenPrint},
                                            {"if", kTokenIf},
+                                           {"endif", kTokenEndif},
                                            {"for", kTokenFor},
                                            {"endfor", kTokenEndfor}};
 
@@ -40,14 +41,13 @@ static void SkipWhitespace() {
   }
 }
 
-static bool IsQuotationMark() {
+static bool IsString() {
   int length = 0;
 
   if ('"' != *source_code) {
     return false;
   }
 
-  token.type = kTokenQuotationMark;
   source_code++;
 
   while (*source_code && '"' != *source_code) {
@@ -63,6 +63,8 @@ static bool IsQuotationMark() {
   if ('"' == *source_code) {
     source_code++;
   }
+
+  token.type = kTokenString;
 
   return true;
 }
@@ -98,8 +100,6 @@ static bool IsCharacter() {
 
       if ('=' == *source_code) {
         token.type = kTokenGreaterOrEquals;
-        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-        strncpy(token.value.text, ">=", 3);
 
         source_code++;
 
@@ -115,8 +115,6 @@ static bool IsCharacter() {
 
       if ('=' == *source_code) {
         token.type = kTokenLessOrEquals;
-        // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-        strncpy(token.value.text, "<=", 3);
 
         source_code++;
 
@@ -138,15 +136,31 @@ static bool IsCharacter() {
   return true;
 }
 
-static bool IsBoolean() {
-  if (0 == strncmp(token.value.text, "true", strlen("true"))) {
+static bool IsKeyword(const char* const buffer) {
+  size_t keyword_index = 0;
+
+  for (keyword_index = 0; keyword_index < kKeywordCount; keyword_index++) {
+    if (0 == strncmp(buffer, kKeywordMap[keyword_index].kText,
+                     strlen(kKeywordMap[keyword_index].kText))) {
+      token.type = kKeywordMap[keyword_index].kType;
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static bool IsBoolean(const char* const buffer) {
+  if (0 == strncmp(buffer, "true", 4)) {
     token.type = kTokenBoolean;
     token.value.number = 1;
 
     return true;
   }
 
-  if (0 == strncmp(token.value.text, "false", strlen("false"))) {
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  if (0 == strncmp(buffer, "false", 5)) {
     token.type = kTokenBoolean;
     token.value.number = 0;
 
@@ -154,6 +168,28 @@ static bool IsBoolean() {
   }
 
   return false;
+}
+
+static bool IsNumber() {
+#ifdef __CC65__
+  char* end = NULL;
+  static const int kBase = 10;
+#else
+  char* end = nullptr;
+  static constexpr int kBase = 10;
+#endif
+
+  if (!isdigit(*source_code)) {
+    return false;
+  }
+
+  token.type = kTokenNumber;
+  token.value.number = strtol(source_code, &end, kBase);
+
+  // Move source code to first character after the digit
+  source_code = end;
+
+  return true;
 }
 
 void ConsumeNextToken() {
@@ -165,13 +201,11 @@ void ConsumeNextToken() {
     return;
   }
 
-  if ((int)IsCharacter() || (int)IsQuotationMark()) {
+  if ((int)IsCharacter() || (int)IsString()) {
     return;
   }
 
-  // Check if the token is a string
   if (isalpha(*source_code)) {
-    size_t keyword_index = 0;
     int length = 0;
     char buffer[kTokenTextBufferSize];
 
@@ -185,47 +219,19 @@ void ConsumeNextToken() {
 
     buffer[length] = '\0';
 
-    // NOLINTBEGIN(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-    memset(token.value.text, 0, sizeof(token.value.text));
-    strncpy(token.value.text, buffer, strlen(buffer));
-    // NOLINTEND(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-
-    if ((int)IsBoolean()) {
+    if ((int)IsBoolean(buffer) || (int)IsKeyword(buffer)) {
       return;
     }
 
-    // Check if token is a keyword
-    for (keyword_index = 0; keyword_index < kKeywordCount; keyword_index++) {
-      if (0 == strncmp(token.value.text, kKeywordMap[keyword_index].kText,
-                       strlen(kKeywordMap[keyword_index].kText))) {
-        token.type = kKeywordMap[keyword_index].kType;
-
-        return;
-      }
-    }
-
-    // If then token is not a keyword, it's an identifier
     token.type = kTokenId;
+
+    // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    strncpy(token.value.text, buffer, strlen(buffer) + 1);
 
     return;
   }
 
-  // Check if token is a number
-  if (isdigit(*source_code)) {
-#ifdef __CC65__
-    char* end = NULL;
-    static const int kBase = 10;
-#else
-    char* end = nullptr;
-    static constexpr int kBase = 10;
-#endif
-
-    token.type = kTokenNumber;
-    token.value.number = strtol(source_code, &end, kBase);
-
-    // Move source code to first character after the digit
-    source_code = end;
-
+  if (IsNumber()) {
     return;
   }
 
