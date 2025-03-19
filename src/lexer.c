@@ -90,6 +90,9 @@ static bool IsCharacter() {
     case '/':
       token.type = kTokenSlash;
       break;
+    case ':':
+      token.type = kTokenColon;
+      break;
     case '>':
       source_code++;
 
@@ -138,14 +141,14 @@ static bool IsCharacter() {
 static bool IsBoolean() {
   if (0 == strncmp(token.value.text, "true", strlen("true"))) {
     token.type = kTokenBoolean;
-    token.value.boolean = true;
+    token.value.number = 1;
 
     return true;
   }
 
   if (0 == strncmp(token.value.text, "false", strlen("false"))) {
     token.type = kTokenBoolean;
-    token.value.boolean = false;
+    token.value.number = 0;
 
     return true;
   }

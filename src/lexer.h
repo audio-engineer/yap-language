@@ -19,6 +19,7 @@ typedef enum TokenType {
   kTokenMinus,
   kTokenStar,
   kTokenSlash,
+  kTokenColon,
   kTokenEquals,
   kTokenLessThan,
   kTokenLessOrEquals,
@@ -39,7 +40,6 @@ typedef struct Token {
   union {
     long number;
     char text[kTokenTextBufferSize];
-    bool boolean;
   } value;
 } Token;
 

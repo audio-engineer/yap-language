@@ -28,7 +28,7 @@ static void ParseNumber() {
 static void ParseBoolean() {
   size_t index = 0;
 
-  if (!token.value.boolean) {
+  if (0 == token.value.number) {
     index = AddNumberConstant(0, kTypeBoolean);
   } else {
     index = AddNumberConstant(1, kTypeBoolean);
