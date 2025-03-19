@@ -131,7 +131,7 @@ static void ParsePrintStatement() {
 
   ConsumeNextToken();
 
-  if (kTokenQuotationMark != token.type) {
+  if (kTokenString != token.type) {
     ParseExpression();
   } else {
     ParseString();
