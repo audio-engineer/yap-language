@@ -31,9 +31,11 @@ add_library(${LIBRARY_NAME}
 
 target_include_directories(${LIBRARY_NAME} PUBLIC src)
 
-# Native executable
+# Set common compilation and linking flags
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Weverything -Wno-pre-c23-compat -Wno-c++98-compat")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-instr-generate -fcoverage-mapping")
 
+# Native executable
 add_executable(${EXECUTABLE_NAME} src/main.c)
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${LIBRARY_NAME})

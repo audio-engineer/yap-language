@@ -143,8 +143,8 @@ void RunVm() {
         const size_t kSecondTerm = Pop();
 
         const size_t kResultIndex =
-            AddNumberConstant(*(long*)constants.pointer[kFirstTerm] +
-                                  *(long*)constants.pointer[kSecondTerm],
+            AddNumberConstant(*(const long*)constants.pointer[kFirstTerm] +
+                                  *(const long*)constants.pointer[kSecondTerm],
                               kTypeNumber);
 
         Push(kResultIndex);
@@ -156,8 +156,8 @@ void RunVm() {
         const size_t kSecondTerm = Pop();
 
         const size_t kResultIndex =
-            AddNumberConstant(*(long*)constants.pointer[kSecondTerm] -
-                                  *(long*)constants.pointer[kFirstTerm],
+            AddNumberConstant(*(const long*)constants.pointer[kSecondTerm] -
+                                  *(const long*)constants.pointer[kFirstTerm],
                               kTypeNumber);
 
         Push(kResultIndex);
@@ -169,8 +169,8 @@ void RunVm() {
         const size_t kSecondTerm = Pop();
 
         const size_t kResultIndex =
-            AddNumberConstant(*(long*)constants.pointer[kSecondTerm] *
-                                  *(long*)constants.pointer[kFirstTerm],
+            AddNumberConstant(*(const long*)constants.pointer[kSecondTerm] *
+                                  *(const long*)constants.pointer[kFirstTerm],
                               kTypeNumber);
 
         Push(kResultIndex);
@@ -180,15 +180,18 @@ void RunVm() {
       case kOpDivide: {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
+
         size_t result_index = 0;
-        if (*(long*)constants.pointer[kFirstTerm] == 0) {
-          printf("Error: Division by zero\n");
-          return;  // Halt execution on division by zero
+
+        if (0 == *(const long*)constants.pointer[kFirstTerm]) {
+          puts("Error: Division by zero");
+
+          return;
         }
 
         result_index =
-            AddNumberConstant(*(long*)constants.pointer[kSecondTerm] /
-                                  *(long*)constants.pointer[kFirstTerm],
+            AddNumberConstant(*(const long*)constants.pointer[kSecondTerm] /
+                                  *(const long*)constants.pointer[kFirstTerm],
                               kTypeNumber);
 
         Push(result_index);
@@ -198,10 +201,10 @@ void RunVm() {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
 
-        const size_t kResultIndex =
-            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] >
-                                    *(long*)constants.pointer[kFirstTerm]),
-                              kTypeBoolean);
+        const size_t kResultIndex = AddNumberConstant(
+            0 != (*(const long*)constants.pointer[kSecondTerm] >
+                  *(const long*)constants.pointer[kFirstTerm]),
+            kTypeBoolean);
         Push(kResultIndex);
 
         break;
@@ -210,23 +213,22 @@ void RunVm() {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
 
-        const size_t kResultIndex =
-            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] >=
-                                    *(long*)constants.pointer[kFirstTerm]),
-                              kTypeBoolean);
+        const size_t kResultIndex = AddNumberConstant(
+            0 != (*(const long*)constants.pointer[kSecondTerm] >=
+                  *(const long*)constants.pointer[kFirstTerm]),
+            kTypeBoolean);
         Push(kResultIndex);
 
         break;
       }
-
       case kOpLessOrEquals: {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
 
-        const size_t kResultIndex =
-            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] <=
-                                    *(long*)constants.pointer[kFirstTerm]),
-                              kTypeBoolean);
+        const size_t kResultIndex = AddNumberConstant(
+            0 != (*(const long*)constants.pointer[kSecondTerm] <=
+                  *(const long*)constants.pointer[kFirstTerm]),
+            kTypeBoolean);
         Push(kResultIndex);
 
         break;
@@ -235,10 +237,10 @@ void RunVm() {
         const size_t kFirstTerm = Pop();
         const size_t kSecondTerm = Pop();
 
-        const size_t kResultIndex =
-            AddNumberConstant(0 != (*(long*)constants.pointer[kSecondTerm] <
-                                    *(long*)constants.pointer[kFirstTerm]),
-                              kTypeBoolean);
+        const size_t kResultIndex = AddNumberConstant(
+            0 != (*(const long*)constants.pointer[kSecondTerm] <
+                  *(const long*)constants.pointer[kFirstTerm]),
+            kTypeBoolean);
         Push(kResultIndex);
 
         break;
@@ -247,13 +249,14 @@ void RunVm() {
         const unsigned char kIndex = Pop();
 
         if (kTypeBoolean == constants.type[kIndex]) {
-          printf("%s\n", *(int*)constants.pointer[kIndex] ? "true" : "false");
+          printf("%s\n",
+                 *(const int*)constants.pointer[kIndex] ? "true" : "false");
 
           break;
         }
 
         if (kTypeNumber == constants.type[kIndex]) {
-          printf("%ld\n", *(long*)constants.pointer[kIndex]);
+          printf("%ld\n", *(const long*)constants.pointer[kIndex]);
 
           break;
         }
