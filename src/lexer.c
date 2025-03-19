@@ -80,7 +80,7 @@ static bool IsCharacter() {
         token.precedence = kPrecComparison;
         // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
         strncpy(token.value.text, "==", 3);
-
+        break;
       }
 
       token.type = kTokenAssign;
@@ -95,7 +95,7 @@ static bool IsCharacter() {
         token.precedence = kPrecComparison;
         // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
         strncpy(token.value.text, "!=", 3);
-
+        break;
       }
       token.type = kTokenNot;
       token.precedence = kPrecUnary;
@@ -139,7 +139,7 @@ static bool IsCharacter() {
 
         source_code++;
 
-        return true;
+        break;
       }
 
       token.type = kTokenGreaterThan;
@@ -158,7 +158,7 @@ static bool IsCharacter() {
 
         source_code++;
 
-        return true;
+        break;
       }
 
       token.type = kTokenLessThan;

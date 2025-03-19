@@ -41,7 +41,7 @@ add_executable(${EXECUTABLE_NAME} src/main.c)
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${LIBRARY_NAME})
 
 # Test executable
-add_executable(${TEST_EXECUTABLE_NAME} tests/lexer.c)
+add_executable(${TEST_EXECUTABLE_NAME} tests/main.c tests/lexer.c tests/parser.c)
 
 target_link_libraries(${TEST_EXECUTABLE_NAME}
         PRIVATE

@@ -86,7 +86,8 @@ static void ParseNumericExpression(const Precedence precedence) {
           kTokenStar == token.type || kTokenGreaterThan == token.type ||
           kTokenSlash == token.type || kTokenLessThan == token.type ||
           kTokenGreaterOrEquals == token.type ||
-          kTokenLessOrEquals == token.type) &&
+          kTokenLessOrEquals == token.type || kTokenEquals == token.type ||
+          kTokenNotEquals == token.type) &&
          precedence <= token.precedence) {
     const TokenType kOperation = token.type;
     const unsigned char kNextPrecedence = token.precedence + 1;
