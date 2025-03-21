@@ -38,18 +38,10 @@ static void TestCondition(const char* source_code, const Opcode opcode) {
   ResetTest();
 }
 
-void TestAddArithmetic() {
-  TestCondition("print(5 + 10)", kOpAdd);
-}
-void TestSubtractArithmetic() {
-  TestCondition("print(5 - 10)", kOpSubtract);
-}
-void TestMultiplyArithmetic() {
-  TestCondition("print(5 * 10)", kOpMultiply);
-}
-void TestDivideArithmetic() {
-  TestCondition("print(10 / 5)", kOpDivide);
-}
+void TestAddArithmetic() { TestCondition("print(5 + 10)", kOpAdd); }
+void TestSubtractArithmetic() { TestCondition("print(5 - 10)", kOpSubtract); }
+void TestMultiplyArithmetic() { TestCondition("print(5 * 10)", kOpMultiply); }
+void TestDivideArithmetic() { TestCondition("print(10 / 5)", kOpDivide); }
 void TestLessThanCondition() { TestCondition("print(1 < 10)", kOpLessThan); }
 void TestLessOrEqualCondition() {
   TestCondition("print(5 <= 10)", kOpLessOrEquals);
@@ -66,7 +58,7 @@ void TestNotEqualCondition() { TestCondition("print(1 != 10)", kOpNotEquals); }
 void TestTrueBoolean() {
   ParseProgram("print(true)");
   const unsigned char kExpectedOpcodes[kOpcodesSize] = {
-    kOpConstant, NextConstant(), kOpPrint};
+      kOpConstant, NextConstant(), kOpPrint};
 
   TEST_ASSERT_EQUAL_CHAR_ARRAY(kExpectedOpcodes, opcodes, kOpcodesSize);
   ResetTest();
@@ -75,7 +67,7 @@ void TestTrueBoolean() {
 void TestFalseBoolean() {
   ParseProgram("print(false)");
   const unsigned char kExpectedOpcodes[kOpcodesSize] = {
-    kOpConstant, NextConstant(), kOpPrint};
+      kOpConstant, NextConstant(), kOpPrint};
 
   TEST_ASSERT_EQUAL_CHAR_ARRAY(kExpectedOpcodes, opcodes, kOpcodesSize);
   ResetTest();
@@ -84,7 +76,7 @@ void TestFalseBoolean() {
 void TestStringParse() {
   ParseProgram("print(\"something\")");
   const unsigned char kExpectedOpcodes[kOpcodesSize] = {
-    kOpConstant, NextConstant(), kOpPrint};
+      kOpConstant, NextConstant(), kOpPrint};
 
   TEST_ASSERT_EQUAL_CHAR_ARRAY(kExpectedOpcodes, opcodes, kOpcodesSize);
   ResetTest();
@@ -98,14 +90,8 @@ static void TestError(const char* source_code) {
   ResetTest();
 }
 
-void TestUnregisteredStatement() {
-  TestError("prant(3+5)");
-}
+void TestUnregisteredStatement() { TestError("prant(3+5)"); }
 
-void TestNoExpression() {
-  TestError("print(+5)");
-}
+void TestNoExpression() { TestError("print(+5)"); }
 
-void TestMissingLeftParen() {
-  TestError("print3+5)");
-}
+void TestMissingLeftParen() { TestError("print3+5)"); }
