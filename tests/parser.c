@@ -9,7 +9,7 @@
 static constexpr unsigned int kOpcodesSize = 128;
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables,-warnings-as-errors)
-static unsigned char k_constant = 0;
+static size_t k_constant = 0;
 
 // automatically keep track of constant_index
 static unsigned char NextConstant() { return k_constant++; }
