@@ -2,16 +2,20 @@
 
 #include <string.h>
 #include <unity.h>
+// NOLINTNEXTLINE(misc-include-cleaner,-warnings-as-errors)
 #include <unity_internals.h>
 #include <vm.h>
 
-constexpr unsigned int kOpcodesSize = 128;
-static unsigned char kConstant = 0;
+static constexpr unsigned int kOpcodesSize = 128;
+
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables,-warnings-as-errors)
+static unsigned char k_constant = 0;
 
 // automatically keep track of constant_index
-static unsigned char NextConstant() { return kConstant++; }
+static unsigned char NextConstant() { return k_constant++; }
 
 static void ResetTest() {  // empties opcodes and index for the next test
+  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
   memset(opcodes, 0, kOpcodesSize * sizeof(char));
   opcode_index = 0;
 }

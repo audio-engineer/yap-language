@@ -1,6 +1,7 @@
 #include "lexer.h"
 
 #include <unity.h>
+// NOLINTNEXTLINE(misc-include-cleaner,-warnings-as-errors)
 #include <unity_internals.h>
 
 void TestUndefinedToken() {
