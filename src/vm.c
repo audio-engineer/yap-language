@@ -6,42 +6,39 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef __CC65__
-enum {
-  kOpcodesSize = 128,
-  kConstantsSize = 128,
-  kStringPoolSize = 512,
-  kNumberPoolSize = 64,
-  kStackSize = 16
-};
-#else
-static constexpr int kOpcodesSize = 128;
-static constexpr int kConstantsSize = 128;
-static constexpr int kStringPoolSize = 512;
-static constexpr int kNumberPoolSize = 64;
-static constexpr int kStackSize = 16;
-#endif
-
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 unsigned char opcodes[kOpcodesSize];
 size_t opcode_index = 0;
 
-typedef struct Constants {
-  const void* pointer[kConstantsSize];
-  ConstantType type[kConstantsSize];
-} Constants;
-static Constants constants;
-static size_t constants_index = 0;
+Constants constants;
+size_t constants_index = 0;
 
-static char string_pool[kStringPoolSize];
-static size_t string_pool_index = 0;
+char string_pool[kStringPoolSize];
+size_t string_pool_index = 0;
 
-static long number_pool[kNumberPoolSize];
-static size_t number_pool_index = 0;
+long number_pool[kNumberPoolSize];
+size_t number_pool_index = 0;
 
-static size_t stack[kStackSize];
-static size_t stack_index = 0;
+size_t stack[kStackSize];
+size_t stack_index = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+
+void ResetInterpreterState() {
+  // NOLINTBEGIN(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+  memset(opcodes, 0, kOpcodesSize);
+  memset(&constants.pointer, 0, kConstantsSize);
+  memset(constants.type, 0, kConstantsSize);
+  memset(string_pool, 0, kStringPoolSize);
+  memset(number_pool, 0, kNumberPoolSize);
+  memset(stack, 0, kStackSize);
+  // NOLINTEND(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+
+  opcode_index = 0;
+  constants_index = 0;
+  string_pool_index = 0;
+  number_pool_index = 0;
+  stack_index = 0;
+}
 
 static void Push(const size_t value) { stack[stack_index++] = value; }
 
@@ -104,14 +101,14 @@ void PrintOpcodes() {
   size_t index = 0;
 
   if (0 == opcode_index) {
-    printf("No opcodes.\n");
+    puts("No opcodes.");
 
     return;
   }
 
   for (index = 0; index < opcode_index; index++) {
     if (0 != index && 0 == index % kRowLength) {
-      printf("\n");
+      puts("");
     }
 
     if (0 != index && 0 != index % kRowLength) {
@@ -121,7 +118,7 @@ void PrintOpcodes() {
     printf("%d", opcodes[index]);
   }
 
-  printf("\n");
+  puts("");
 }
 
 void RunVm() {
@@ -184,7 +181,7 @@ void RunVm() {
         size_t result_index = 0;
 
         if (0 == *(const long*)constants.pointer[kFirstTerm]) {
-          puts("Error: Division by zero");
+          puts("Error: Division by zero.");
 
           return;
         }
@@ -267,12 +264,12 @@ void RunVm() {
           break;
         }
 
-        printf("Unknown print type.");
+        puts("Error: Unknown print type.");
 
         break;
       }
       case kOpIf: {
-        printf("If statement is not implemented\n");
+        puts("Error: If statement is not implemented.");
 
         break;
       }
