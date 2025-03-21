@@ -43,11 +43,18 @@ unused-param,$\
 unused-var,$\
 const-overflow
 
-CFLAGS := -O -t $(PLATFORM) -W $(WARNINGS)
-ifeq ($(BUILD_TYPE),Release)
-CFLAGS += -DNDEBUG
+CFLAGS := -t $(PLATFORM) -W $(WARNINGS)
+ifeq ($(BUILD_TYPE),Debug)
+CFLAGS += -g
+else
+CFLAGS += -Osir -Cl -DNDEBUG
 endif
+
 AFLAGS :=
+ifeq ($(BUILD_TYPE),Debug)
+AFLAGS += -g
+endif
+
 LDFLAGS := -t $(PLATFORM)
 ifeq ($(BUILD_TYPE),Debug)
 LDFLAGS += -m $(BUILD_DIR)/yap-lang.map
