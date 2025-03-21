@@ -65,7 +65,7 @@ static void ParseOperator(const TokenType operation) {
       EmitByte(kOpLessOrEquals);
       break;
     default:
-      printf("Undefined operator");
+      puts("Error: Undefined operator.");
       token.type = kTokenEof;
   }
 }
@@ -105,7 +105,7 @@ static void ParseExpression() {
       ParseBoolean();
       return;
     default:
-      printf("Could not parse expression");
+      puts("Error: Could not parse expression.");
       token.type = kTokenEof;
   }
 }
