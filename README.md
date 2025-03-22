@@ -41,8 +41,8 @@ This will run `ClangFormat` on the source code.
 
 ### Build in CLion
 
-To build the native binaries, run the `yap-lang-native` run configuration in CLion, either with the `native-debug-local`
-or `native-release-local` preset selected.
+To build the native binaries, run the `yali-native` run configuration in CLion, either with the `native-debug-local` or
+`native-release-local` preset selected.
 
 To build the Commodore binary, run the `build` run configuration in CLion.
 
@@ -97,5 +97,5 @@ Open the `index.html` file in a browser to view the report.
 ### Run
 
 ```shell
-x128 build-c128-release/yap-lang.prg
+x128 build-c128-release/yali.prg
 ```

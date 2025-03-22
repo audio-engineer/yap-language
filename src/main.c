@@ -9,73 +9,167 @@
 #include "vm.h"
 
 #ifdef __CC65__
-enum { kInputBufferSize = 81, kClearScreen = 147 };
+enum { kClearScreen = 147, kLineBufferSize = 81, kProgramBufferSize = 8192 };
 #else
-static constexpr int kInputBufferSize = 81;
+static constexpr int kLineBufferSize = 81;
+static constexpr int kProgramBufferSize = 8192;
 #endif
 
+typedef enum ExecutionMode { kModeDirect, kModeProgram } ExecutionMode;
+
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+static ExecutionMode current_mode = kModeDirect;
+static char line_buffer[kLineBufferSize];
+static char program_buffer[kProgramBufferSize];
+static size_t program_buffer_index = 0;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+
 static void PrintHelp() {
-  printf("Usage:\n");
-  printf("run   Run your program.\n");
-  printf("ops   Print opcodes currently in buffer.\n");
-  printf("exit  Exit the interpreter.\n");
-  printf("help  Show this message.\n");
+  puts("Usage:");
+  puts("help  Show this message.");
+  puts("ops   Print opcodes currently in buffer.");
+  puts("clear Clear the program buffer.");
+  puts("exit  Exit the interpreter.");
+  puts("Direct mode:");
+  puts("prog  Enter program mode.");
+  puts("Program mode:");
+  puts("run   Run program in program mode.");
+  puts("dir   Return to direct mode.");
+}
+
+static void EmitHalt() {
+  if (kOpHalt != opcodes[opcode_index - 1]) {
+    EmitByte(kOpHalt);
+  }
+}
+
+static void PrintMode(const char* const mode) {
+  puts("");
+  printf("%s mode.\n", mode);
+}
+
+static void DirectMode() {
+  ResetInterpreterState();
+
+  if (0 == strncmp("prog", line_buffer, 4)) {
+    current_mode = kModeProgram;
+
+    PrintMode("Program");
+
+    return;
+  }
+
+  if (kOpHalt == opcodes[opcode_index - 1]) {
+    opcodes[opcode_index--] = 0;
+  }
+
+  ParseProgram(line_buffer);
+  EmitHalt();
+  RunVm();
+}
+
+static void ProgramMode() {
+  size_t line_buffer_length = 0;
+
+  ResetInterpreterState();
+
+  if (0 == strncmp("run", line_buffer, 3)) {
+    program_buffer[program_buffer_index] = '\0';
+
+    ParseProgram(program_buffer);
+    EmitHalt();
+    RunVm();
+
+    return;
+  }
+
+  if (0 == strncmp("dir", line_buffer, 3)) {
+    current_mode = kModeDirect;
+
+    PrintMode("Direct");
+
+    return;
+  }
+
+  line_buffer_length = strlen(line_buffer);
+
+  if (kOpHalt == opcodes[opcode_index - 1]) {
+    opcodes[opcode_index--] = 0;
+  }
+
+  if (program_buffer_index + line_buffer_length + 1 < kProgramBufferSize) {
+    // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+    memcpy(&program_buffer[program_buffer_index], line_buffer,
+           line_buffer_length);
+
+    program_buffer_index += line_buffer_length;
+
+    return;
+  }
+
+  puts("Error: Program buffer overflow.");
 }
 
 int main() {
-  static char input_buffer[kInputBufferSize];
-
 #ifdef __CC65__
   putchar(kClearScreen);
 #endif
 
-  printf("Welcome to the Yap Language!\n");
-  printf("\n");
-  printf("Run 'help' to see a list of commands.\n");
+  puts("Welcome to the Yap Language!");
+  puts("");
+  puts("Run 'help' to see a list of commands.");
+  PrintMode("Direct");
 
   while (true) {
-    printf("> ");
-
     // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-    memset(input_buffer, 0, kInputBufferSize);
-    fgets(input_buffer, kInputBufferSize, stdin);
+    memset(line_buffer, 0, kLineBufferSize);
 
-    if (0 == strncmp("exit", input_buffer, 4)) {
+    if (kModeDirect == current_mode) {
+      printf("> ");
+    }
+
+    if (!fgets(line_buffer, kLineBufferSize, stdin)) {
       break;
     }
 
-    if (0 == strncmp("help", input_buffer, 4)) {
+    if (0 == strncmp("exit", line_buffer, 4)) {
+      break;
+    }
+
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    if (0 == strncmp(line_buffer, "clear", 5)) {
+      ResetInterpreterState();
+      program_buffer_index = 0;
+
+      puts("Cleared.");
+
+      continue;
+    }
+
+    if (0 == strncmp("help", line_buffer, 4)) {
       PrintHelp();
 
       continue;
     }
 
-    if (0 == strncmp("ops", input_buffer, 3)) {
+    if (0 == strncmp("ops", line_buffer, 3)) {
       PrintOpcodes();
 
       continue;
     }
 
-    if (0 == strncmp("run", input_buffer, 3)) {
-      // If the program hasn't been run before, add halt opcode
-      if (kOpHalt != opcodes[opcode_index - 1]) {
-        EmitByte(kOpHalt);
-      }
-
-      RunVm();
+    if (kModeDirect == current_mode) {
+      DirectMode();
 
       continue;
     }
 
-    // If the program has been run before, remove halt opcode
-    if (kOpHalt == opcodes[opcode_index - 1]) {
-      opcodes[opcode_index--] = 0;
+    if (kModeProgram == current_mode) {
+      ProgramMode();
     }
-
-    ParseProgram(input_buffer);
   }
 
-  printf("Bye!\n");
+  puts("Bye!");
 
   return EXIT_SUCCESS;
 }
