@@ -4,7 +4,8 @@ include .env
 export
 endif
 
-TARGET := yap-lang.prg
+EXECUTABLE_NAME := yali
+TARGET := $(EXECUTABLE_NAME).prg
 PLATFORM := c128
 BUILD_TYPE ?= Debug
 
@@ -57,7 +58,7 @@ endif
 
 LDFLAGS := -t $(PLATFORM)
 ifeq ($(BUILD_TYPE),Debug)
-LDFLAGS += -m $(BUILD_DIR)/yap-lang.map
+LDFLAGS += -m $(BUILD_DIR)/$(EXECUTABLE_NAME).map
 endif
 
 ASMFILES := $(patsubst %.c,$(BUILD_DIR)/%.s,$(notdir $(SOURCES)))

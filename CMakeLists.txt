@@ -6,9 +6,9 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(EXECUTABLE_NAME yap-lang-native)
-set(LIBRARY_NAME yap-lang-native-lib)
-set(TEST_EXECUTABLE_NAME yap-lang-native-tests)
+set(EXECUTABLE_NAME yali-native)
+set(LIBRARY_NAME yali-native-lib)
+set(TEST_EXECUTABLE_NAME yali-native-tests)
 
 include(FetchContent)
 enable_testing()
