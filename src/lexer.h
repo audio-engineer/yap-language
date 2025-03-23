@@ -20,7 +20,10 @@ typedef enum TokenType {
   kTokenStar,
   kTokenSlash,
   kTokenColon,
+  kTokenAssign,
   kTokenEquals,
+  kTokenNot,
+  kTokenNotEquals,
   kTokenLessThan,
   kTokenLessOrEquals,
   kTokenGreaterThan,
@@ -36,12 +39,28 @@ typedef enum TokenType {
   kTokenBoolean
 } TokenType;
 
+typedef enum {
+  kPrecNone,
+  kPrecAssignment,  // =
+  kPrecOr,          // ||
+  kPrecAnd,         // &&
+  kPrecEquality,    // ==, !=
+  kPrecComparison,  // <, >, <=, >=
+  kPrecTerm,        // +, -
+  kPrecFactor,      // *, /
+  kPrecUnary,       // !, - (prefix)
+  kPrecCall,        // Function calls
+  kPrecPrimary      // Literals, variables, (expr)
+} Precedence;
+
 typedef struct Token {
   TokenType type;
   union {
     long number;
     char text[kTokenTextBufferSize];
   } value;
+  const char* start_of_token;
+  Precedence precedence;
 } Token;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)

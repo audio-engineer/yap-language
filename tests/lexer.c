@@ -1,20 +1,15 @@
 #include "lexer.h"
 
 #include <unity.h>
-#include <unity_internals.h>
 
-void setUp() {}
-
-void tearDown() {}
-
-static void TestUndefinedToken() {
+void TestUndefinedToken() {
   source_code = "^";
 
   ConsumeNextToken();  // ^
   TEST_ASSERT_EQUAL_INT(kTokenEof, token.type);
 }
 
-static void TestSkipWhitespace() {
+void TestSkipWhitespace() {
   source_code = "     print(3+2)";
 
   ConsumeNextToken();  // print
@@ -36,7 +31,7 @@ static void TestSkipWhitespace() {
   TEST_ASSERT_EQUAL_INT(kTokenRightParenthesis, token.type);
 }
 
-static void TestPrintArithmetic() {
+void TestPrintArithmetic() {
   source_code = "print(3+2)";
 
   ConsumeNextToken();  // print
@@ -63,7 +58,7 @@ static void TestPrintArithmetic() {
   TEST_ASSERT_EQUAL_INT(kTokenEof, token.type);
 }
 
-static void TestMinus() {
+void TestMinus() {
   source_code = "20-15";
 
   ConsumeNextToken();  // 20
@@ -71,7 +66,7 @@ static void TestMinus() {
   TEST_ASSERT_EQUAL_INT(kTokenMinus, token.type);
 }
 
-static void TestStar() {
+void TestStar() {
   source_code = "4*97";
 
   ConsumeNextToken();  // 4
@@ -79,7 +74,7 @@ static void TestStar() {
   TEST_ASSERT_EQUAL_INT(kTokenStar, token.type);
 }
 
-static void TestSlash() {
+void TestSlash() {
   source_code = "60/3";
 
   ConsumeNextToken();  // 60
@@ -87,7 +82,7 @@ static void TestSlash() {
   TEST_ASSERT_EQUAL_INT(kTokenSlash, token.type);
 }
 
-static void TestString() {
+void TestString() {
   source_code = "\"Hello, world!\"";
 
   ConsumeNextToken();  // Hello, world!
@@ -95,7 +90,7 @@ static void TestString() {
   TEST_ASSERT_EQUAL_STRING("Hello, world!", token.value.text);
 }
 
-static void TestPrintString() {
+void TestPrintString() {
   source_code = "print(\"Hello, world!\")";
 
   ConsumeNextToken();  // print
@@ -105,7 +100,7 @@ static void TestPrintString() {
   TEST_ASSERT_EQUAL_STRING("Hello, world!", token.value.text);
 }
 
-static void TestIdentifier() {
+void TestIdentifier() {
   source_code = "variable:int=";
 
   ConsumeNextToken();  // variable
@@ -113,35 +108,35 @@ static void TestIdentifier() {
   TEST_ASSERT_EQUAL_STRING("variable", token.value.text);
 }
 
-static void TestGreaterThan() {
+void TestGreaterThan() {
   source_code = ">flkd";
 
   ConsumeNextToken();  // >
   TEST_ASSERT_EQUAL_INT(kTokenGreaterThan, token.type);
 }
 
-static void TestLessThan() {
+void TestLessThan() {
   source_code = "<jvmv";
 
   ConsumeNextToken();  // <
   TEST_ASSERT_EQUAL_INT(kTokenLessThan, token.type);
 }
 
-static void TestGreaterThanOrEqualTo() {
+void TestGreaterThanOrEqualTo() {
   source_code = ">=fjkle";
 
   ConsumeNextToken();  // >=
   TEST_ASSERT_EQUAL_INT(kTokenGreaterOrEquals, token.type);
 }
 
-static void TestLessThanOrEqualTo() {
+void TestLessThanOrEqualTo() {
   source_code = "<=radf";
 
   ConsumeNextToken();  // <=
   TEST_ASSERT_EQUAL_INT(kTokenLessOrEquals, token.type);
 }
 
-static void TestBooleanLiteral() {
+void TestBooleanLiteral() {
   source_code = "true";
 
   ConsumeNextToken();  // true
@@ -165,7 +160,7 @@ static void TestBooleanLiteral() {
   TEST_ASSERT_EQUAL_INT(0, token.value.number);
 }
 
-static void TestIf() {
+void TestIf() {
   source_code = "if(true)print(\"Hello, world!\")endif";
 
   ConsumeNextToken();  // if
@@ -182,7 +177,7 @@ static void TestIf() {
   TEST_ASSERT_EQUAL_INT(kTokenEndif, token.type);
 }
 
-static void TestFor() {
+void TestFor() {
   source_code = "for(true)print(\"Hello, world!\")endfor";
 
   ConsumeNextToken();  // for
@@ -197,27 +192,4 @@ static void TestFor() {
   ConsumeNextToken();  // )
   ConsumeNextToken();  // endif
   TEST_ASSERT_EQUAL_INT(kTokenEndfor, token.type);
-}
-
-int main() {
-  UNITY_BEGIN();
-
-  RUN_TEST(TestUndefinedToken);
-  RUN_TEST(TestSkipWhitespace);
-  RUN_TEST(TestPrintArithmetic);
-  RUN_TEST(TestMinus);
-  RUN_TEST(TestStar);
-  RUN_TEST(TestSlash);
-  RUN_TEST(TestString);
-  RUN_TEST(TestPrintString);
-  RUN_TEST(TestIdentifier);
-  RUN_TEST(TestGreaterThan);
-  RUN_TEST(TestLessThan);
-  RUN_TEST(TestGreaterThanOrEqualTo);
-  RUN_TEST(TestLessThanOrEqualTo);
-  RUN_TEST(TestBooleanLiteral);
-  RUN_TEST(TestIf);
-  RUN_TEST(TestFor);
-
-  return UNITY_END();
 }
