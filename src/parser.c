@@ -10,7 +10,13 @@
 #endif
 #include "lexer.h"
 #include "vm.h"
+
 static void ParseStatement();
+
+static void TokenTypeAssertionError(const char* const expected,
+                                    const TokenType actual) {
+  printf("Error: Expected '%s' but got '%d'.\n", expected, actual);
+}
 
 /**
  * Grammar:
@@ -133,7 +139,7 @@ static void ParsePrintStatement() {
   ConsumeNextToken();
 
   if (kTokenLeftParenthesis != token.type) {
-    printf("Expected '(' but got token type '%d'\n", (int)token.type);
+    TokenTypeAssertionError("(", token.type);
 
     return;
   }
@@ -149,7 +155,7 @@ static void ParsePrintStatement() {
   ConsumeNextToken();
 
   if (kTokenRightParenthesis != token.type) {
-    printf("Expected ')' but got token type '%d'\n", (int)token.type);
+    TokenTypeAssertionError(")", token.type);
 
     return;
   }
@@ -168,7 +174,8 @@ static void ParseIfStatement() {
   ConsumeNextToken();
 
   if (kTokenLeftParenthesis != token.type) {
-    printf("Expected '(' but got token type '%d'\n", (int)token.type);
+    TokenTypeAssertionError("(", token.type);
+
     return;
   }
   ConsumeNextToken();
@@ -176,7 +183,8 @@ static void ParseIfStatement() {
   ConsumeNextToken();
 
   if (kTokenRightParenthesis != token.type) {
-    printf("Expected ')' but got token type '%d'\n", (int)token.type);
+    TokenTypeAssertionError(")", token.type);
+
     return;
   }
 
@@ -211,7 +219,7 @@ static void ParseIfStatement() {
   }
 
   if (token.type != kTokenEndif) {
-    printf("Expected 'endif' but got token type '%d'\n", (int)token.type);
+    TokenTypeAssertionError("endif", token.type);
   }
   ConsumeNextToken();
 }
@@ -229,7 +237,7 @@ static void ParseStatement() {
 
       break;
     default:
-      printf("Unregistered statement '%s'\n", token.value.text);
+      printf("Error: Unregistered statement '%s'.\n", token.value.text);
 
       token.type = kTokenEof;
   }
