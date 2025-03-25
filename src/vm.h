@@ -24,7 +24,8 @@ typedef enum Opcode {
   kOpLessThan,
   kOpLessOrEquals,
   kOpPrint,
-  kOpIf,
+  kOpJumpIfFalse,
+  kOpJump,
   kOpHalt
 } Opcode;
 

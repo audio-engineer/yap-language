@@ -38,6 +38,11 @@ extern void TestUnregisteredStatement();
 extern void TestNoExpression();
 extern void TestMissingLeftParen();
 
+extern void TestIfTrueExecutesBlock();
+extern void TestIfFalseSkipsBlock();
+extern void TestIfGreaterThanComparison();
+extern void TestIfLessThanComparison();
+
 void setUp() {}
 
 void tearDown() {}
@@ -81,6 +86,12 @@ int main() {
   RUN_TEST(TestUnregisteredStatement);
   RUN_TEST(TestNoExpression);
   RUN_TEST(TestMissingLeftParen);
+
+  // conditionals
+  RUN_TEST(TestIfTrueExecutesBlock);
+  RUN_TEST(TestIfFalseSkipsBlock);
+  RUN_TEST(TestIfGreaterThanComparison);
+  RUN_TEST(TestIfLessThanComparison);
 
   return UNITY_END();
 }

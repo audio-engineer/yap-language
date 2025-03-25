@@ -22,11 +22,9 @@ typedef struct KeywordEntry {
   const TokenType kType;
 } KeywordEntry;
 
-static const KeywordEntry kKeywordMap[] = {{"print", kTokenPrint},
-                                           {"if", kTokenIf},
-                                           {"endif", kTokenEndif},
-                                           {"for", kTokenFor},
-                                           {"endfor", kTokenEndfor}};
+static const KeywordEntry kKeywordMap[] = {
+    {"print", kTokenPrint}, {"if", kTokenIf},   {"else", kTokenElse},
+    {"endif", kTokenEndif}, {"for", kTokenFor}, {"endfor", kTokenEndfor}};
 
 #ifdef __CC65__
 static const size_t kKeywordCount = sizeof(kKeywordMap) / sizeof(KeywordEntry);
