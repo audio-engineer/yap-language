@@ -290,9 +290,17 @@ void RunVm() {
 
         break;
       }
-      case kOpIf: {
-        puts("Error: If statement is not implemented.");
+      case kOpJumpIfFalse: {
+        int jump_address = opcodes[instruction++];
 
+        if (*(int*)constants.pointer[Pop()] == 0) {
+          instruction = jump_address;
+        }
+        break;
+      }
+      case kOpJump: {
+        instruction++;
+        instruction = opcodes[instruction];
         break;
       }
       case kOpHalt: {

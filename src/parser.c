@@ -10,6 +10,7 @@
 #endif
 #include "lexer.h"
 #include "vm.h"
+static void ParseStatement();
 
 /**
  * Grammar:
@@ -161,28 +162,62 @@ static void ParsePrintStatement() {
 /**
  * Grammar: if(expression) statement* endif
  */
+// NOLINTBEGIN(misc-no-recursion)
 static void ParseIfStatement() {
+  size_t if_jump_address_index = 0;
   ConsumeNextToken();
 
   if (kTokenLeftParenthesis != token.type) {
     printf("Expected '(' but got token type '%d'\n", (int)token.type);
-
     return;
   }
-
+  ConsumeNextToken();
+  ParseExpression();
   ConsumeNextToken();
 
   if (kTokenRightParenthesis != token.type) {
     printf("Expected ')' but got token type '%d'\n", (int)token.type);
-
     return;
   }
 
+  EmitByte(kOpJumpIfFalse);
+  if_jump_address_index = opcode_index;
+  EmitByte(0);
+
   ConsumeNextToken();
 
-  EmitByte(kOpIf);
-}
+  while (token.type != kTokenEndif && token.type != kTokenElse &&
+         token.type != kTokenEof) {
+    ParseStatement();
+  }
 
+  if (token.type == kTokenElse) {
+    size_t else_jump_address_index = 0;
+    EmitByte(kOpJump);
+    else_jump_address_index = opcode_index;
+    EmitByte(0);
+
+    opcodes[if_jump_address_index] = opcode_index;
+
+    ConsumeNextToken();
+
+    while (token.type != kTokenEndif && token.type != kTokenEof) {
+      ParseStatement();
+    }
+
+    opcodes[else_jump_address_index] = opcode_index;
+  } else {
+    opcodes[if_jump_address_index] = opcode_index;
+  }
+
+  if (token.type != kTokenEndif) {
+    printf("Expected 'endif' but got token type '%d'\n", (int)token.type);
+  }
+  ConsumeNextToken();
+}
+// NOLINTEND(misc-no-recursion)
+
+// NOLINTBEGIN(misc-no-recursion)
 static void ParseStatement() {
   switch (token.type) {
     case kTokenPrint:
@@ -199,6 +234,7 @@ static void ParseStatement() {
       token.type = kTokenEof;
   }
 }
+// NOLINTEND(misc-no-recursion)
 
 void ParseProgram(const char* const source_code_parameter) {
   source_code = source_code_parameter;

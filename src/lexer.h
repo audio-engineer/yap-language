@@ -32,6 +32,7 @@ typedef enum TokenType {
   kTokenRightParenthesis,
   kTokenString,
   kTokenIf,
+  kTokenElse,
   kTokenEndif,
   kTokenFor,
   kTokenEndfor,
