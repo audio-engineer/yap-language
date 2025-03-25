@@ -77,7 +77,7 @@ void ResetInterpreterState();
 
 void EmitByte(unsigned char byte);
 
-size_t AddNumberConstant(long value, ConstantType constant_type);
+size_t AddNumberConstant(int value, ConstantType constant_type);
 
 size_t AddStringConstant(const char* string);
 

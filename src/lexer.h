@@ -57,7 +57,7 @@ typedef enum {
 typedef struct Token {
   TokenType type;
   union {
-    long number;
+    int number;
     char text[kTokenTextBufferSize];
   } value;
   const char* start_of_token;
