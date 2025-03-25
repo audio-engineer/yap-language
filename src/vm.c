@@ -315,7 +315,7 @@ void RunVm() {
         return;
       }
       default: {
-        printf("Undefined opcode '%c'\n", kOpCode);
+        printf("Error: Undefined opcode '%d'.\n", kOpcode);
 
         return;
       }

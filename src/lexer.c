@@ -266,7 +266,7 @@ void ConsumeNextToken() {
     return;
   }
 
-  printf("Unexpected token: '%c'\n", *source_code);
+  printf("Error: Unexpected token '%c'.\n", *source_code);
 
   token.type = kTokenEof;
 }
