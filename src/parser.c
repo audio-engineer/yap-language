@@ -18,7 +18,7 @@ static void ParseStatement();
  * | '(' expression ')'
  */
 static void ParseNumber() {
-  const long kNumber = token.value.number;
+  const int kNumber = token.value.number;
 
   const size_t kIndex = AddNumberConstant(kNumber, kTypeNumber);
 

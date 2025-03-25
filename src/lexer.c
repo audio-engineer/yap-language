@@ -212,8 +212,9 @@ static bool IsNumber() {
   }
 
   token.type = kTokenNumber;
-  token.value.number = strtol(source_code, &end, kBase);
+  token.value.number = (int)strtol(source_code, &end, kBase);
   token.precedence = kPrecPrimary;
+
   // Move source code to first character after the digit
   source_code = end;
 
