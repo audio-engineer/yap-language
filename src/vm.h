@@ -11,6 +11,12 @@
 #include <sys/_types/_size_t.h>
 #endif
 
+#ifdef __CC65__
+enum { kInstructionsSize = 128 };
+#else
+static constexpr int kInstructionsSize = 128;
+#endif
+
 typedef enum Opcode {
   kOpConstant,
   kOpAdd,
@@ -57,8 +63,6 @@ typedef struct Constants {
 } Constants;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-extern unsigned char opcodes[];
-extern size_t opcode_index;
 
 extern Constants constants;
 extern size_t constants_index;
@@ -71,6 +75,8 @@ extern size_t number_pool_index;
 
 extern size_t stack[];
 extern size_t stack_index;
+extern unsigned char instructions[];
+extern size_t instruction_index;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 void ResetInterpreterState();
