@@ -60,13 +60,11 @@ run_clang_tidy() {
   assert_debug_target $native_debug_bin
 
   info 'Running ClangTidy on the Commodore version...'
-  set -- src/*.[ch]
-  $clang_tidy --quiet --config-file .clang-tidy --extra-arg=-std=c99 --extra-arg=-D__CC65__ --extra-arg=-DNNEAR "$@"
+  $clang_tidy --quiet --config-file .clang-tidy --extra-arg=-std=c99 --extra-arg=-D__CC65__ --extra-arg=-DNNEAR src/*.[ch]
 
   echo
   info 'Running ClangTidy on the native version...'
-  set -- "$@" tests/*.[ch]
-  $clang_tidy --quiet --config-file .clang-tidy -p $build_native_debug_dir "$@"
+  $clang_tidy --quiet --config-file .clang-tidy -p $build_native_debug_dir ./**/*.[ch]
 }
 
 run_cppcheck() {
@@ -92,7 +90,7 @@ run_cppcheck() {
 
 run_clang_format() {
   info 'Running ClangFormat on all source files...'
-  $clang_format --verbose -i src/*.[ch] tests/*.[ch]
+  $clang_format --verbose -i -- **/*.[ch]
 }
 
 run_tests() {
