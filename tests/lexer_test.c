@@ -2,6 +2,8 @@
 
 #include <unity.h>
 
+#include "lexer_test.h"
+
 void TestUndefinedToken() {
   source_code = "^";
 
@@ -192,4 +194,16 @@ void TestFor() {
   ConsumeNextToken();  // )
   ConsumeNextToken();  // endif
   TEST_ASSERT_EQUAL_INT(kTokenEndfor, token.type);
+}
+
+void TestNot() {
+  source_code = "print(!true)";
+
+  ConsumeNextToken();  // print
+  ConsumeNextToken();  // (
+  ConsumeNextToken();  // !
+  TEST_ASSERT_EQUAL_INT(kTokenNot, token.type);
+
+  ConsumeNextToken();  // true
+  TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
 }
