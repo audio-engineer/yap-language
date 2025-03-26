@@ -42,11 +42,13 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${LIBRARY_NAME})
 
 # Test executable
 add_executable(${TEST_EXECUTABLE_NAME}
+        tests/conditionals_test.c
+        tests/lexer_test.c
         tests/main.c
-        tests/lexer.c
-        tests/parser.c
-        tests/conditionals.c
+        tests/parser_test.c
 )
+
+target_include_directories(${TEST_EXECUTABLE_NAME} PUBLIC tests)
 
 target_link_libraries(${TEST_EXECUTABLE_NAME}
         PRIVATE

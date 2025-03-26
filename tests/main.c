@@ -1,47 +1,9 @@
 #include <unity.h>
 #include <unity_internals.h>
 
-// lexer
-extern void TestUndefinedToken();
-extern void TestSkipWhitespace();
-extern void TestPrintArithmetic();
-extern void TestMinus();
-extern void TestStar();
-extern void TestSlash();
-extern void TestString();
-extern void TestPrintString();
-extern void TestIdentifier();
-extern void TestGreaterThan();
-extern void TestLessThan();
-extern void TestGreaterThanOrEqualTo();
-extern void TestLessThanOrEqualTo();
-extern void TestBooleanLiteral();
-extern void TestIf();
-extern void TestFor();
-
-// parser
-extern void TestRecursiveArithmetic();
-extern void TestLessThanCondition();
-extern void TestLessOrEqualCondition();
-extern void TestGreaterThanCondition();
-extern void TestGreaterOrEqualCondition();
-extern void TestEqualCondition();
-extern void TestNotEqualCondition();
-extern void TestAddArithmetic();
-extern void TestSubtractArithmetic();
-extern void TestMultiplyArithmetic();
-extern void TestDivideArithmetic();
-extern void TestTrueBoolean();
-extern void TestFalseBoolean();
-extern void TestStringParse();
-extern void TestUnregisteredStatement();
-extern void TestNoExpression();
-extern void TestMissingLeftParen();
-
-extern void TestIfTrueExecutesBlock();
-extern void TestIfFalseSkipsBlock();
-extern void TestIfGreaterThanComparison();
-extern void TestIfLessThanComparison();
+#include "conditionals_test.h"
+#include "lexer_test.h"
+#include "parser_test.h"
 
 void setUp() {}
 
@@ -67,6 +29,7 @@ int main() {
   RUN_TEST(TestBooleanLiteral);
   RUN_TEST(TestIf);
   RUN_TEST(TestFor);
+  RUN_TEST(TestNot);
 
   // Parser
   RUN_TEST(TestRecursiveArithmetic);
@@ -87,7 +50,7 @@ int main() {
   RUN_TEST(TestNoExpression);
   RUN_TEST(TestMissingLeftParen);
 
-  // conditionals
+  // Conditionals
   RUN_TEST(TestIfTrueExecutesBlock);
   RUN_TEST(TestIfFalseSkipsBlock);
   RUN_TEST(TestIfGreaterThanComparison);

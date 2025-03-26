@@ -5,11 +5,12 @@
 #endif
 #include <unity.h>
 
+#include "conditionals_test.h"
 #include "parser.h"
 #include "vm.h"
 
 static void Run(const char* code) {
-  opcode_index = 0;
+  instruction_index = 0;
 
   ParseProgram(code);
   EmitByte(kOpHalt);
@@ -24,14 +25,14 @@ void TestIfTrueExecutesBlock() {
   bool saw_print = false;
   bool saw_halt = false;
 
-  for (size_t i = 0; i < opcode_index; ++i) {
-    if (opcodes[i] == kOpJumpIfFalse) {
+  for (size_t i = 0; i < instruction_index; ++i) {
+    if (instructions[i] == kOpJumpIfFalse) {
       saw_jump_if_false = true;
     }
-    if (opcodes[i] == kOpPrint) {
+    if (instructions[i] == kOpPrint) {
       saw_print = true;
     }
-    if (opcodes[i] == kOpHalt) {
+    if (instructions[i] == kOpHalt) {
       saw_halt = true;
     }
   }
@@ -48,11 +49,11 @@ void TestIfFalseSkipsBlock() {
 
   bool saw_print = false;
   bool saw_jump = true;
-  for (size_t i = 0; i < opcode_index; ++i) {
-    if (opcodes[i] == kOpPrint) {
+  for (size_t i = 0; i < instruction_index; ++i) {
+    if (instructions[i] == kOpPrint) {
       saw_print = true;
     }
-    if (opcodes[i] == kOpJump) {
+    if (instructions[i] == kOpJump) {
       saw_jump = false;
     }
   }
