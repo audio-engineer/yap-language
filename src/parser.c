@@ -189,7 +189,7 @@ static void ParseIfStatement() {
   }
 
   EmitByte(kOpJumpIfFalse);
-  if_jump_address_index = opcode_index;
+  if_jump_address_index = instruction_index;
   EmitByte(0);
 
   ConsumeNextToken();
@@ -202,10 +202,10 @@ static void ParseIfStatement() {
   if (token.type == kTokenElse) {
     size_t else_jump_address_index = 0;
     EmitByte(kOpJump);
-    else_jump_address_index = opcode_index;
+    else_jump_address_index = instruction_index;
     EmitByte(0);
 
-    opcodes[if_jump_address_index] = opcode_index;
+    instructions[if_jump_address_index] = instruction_index;
 
     ConsumeNextToken();
 
@@ -213,9 +213,9 @@ static void ParseIfStatement() {
       ParseStatement();
     }
 
-    opcodes[else_jump_address_index] = opcode_index;
+    instructions[else_jump_address_index] = instruction_index;
   } else {
-    opcodes[if_jump_address_index] = opcode_index;
+    instructions[if_jump_address_index] = instruction_index;
   }
 
   if (token.type != kTokenEndif) {

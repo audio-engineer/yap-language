@@ -7,8 +7,8 @@
 #include <string.h>
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-unsigned char opcodes[kOpcodesSize];
-size_t opcode_index = 0;
+unsigned char instructions[kInstructionsSize];
+size_t instruction_index = 0;
 
 Constants constants;
 size_t constants_index = 0;
@@ -25,7 +25,7 @@ size_t stack_index = 0;
 
 void ResetInterpreterState() {
   // NOLINTBEGIN(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-  memset(opcodes, 0, kOpcodesSize);
+  memset(instructions, 0, kInstructionsSize);
   memset(&constants.pointer, 0, kConstantsSize);
   memset(constants.type, 0, kConstantsSize);
   memset(string_pool, 0, kStringPoolSize);
@@ -33,7 +33,7 @@ void ResetInterpreterState() {
   memset(stack, 0, kStackSize);
   // NOLINTEND(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
 
-  opcode_index = 0;
+  instruction_index = 0;
   constants_index = 0;
   string_pool_index = 0;
   number_pool_index = 0;
@@ -44,7 +44,9 @@ static void Push(const size_t value) { stack[stack_index++] = value; }
 
 static size_t Pop() { return stack[--stack_index]; }
 
-void EmitByte(const unsigned char byte) { opcodes[opcode_index++] = byte; }
+void EmitByte(const unsigned char byte) {
+  instructions[instruction_index++] = byte;
+}
 
 void EmitHalt() {
   if (kOpHalt != instructions[instruction_index - 1]) {
@@ -112,36 +114,36 @@ void PrintOpcodes() {
 
   size_t index = 0;
 
-  if (0 == opcode_index) {
+  if (0 == instruction_index) {
     puts("No opcodes.");
 
     return;
   }
 
-  for (index = 0; index < opcode_index; index++) {
+  for (index = 0; index < instruction_index; index++) {
     if (0 != index && 0 == index % kRowLength) {
       puts("");
     }
 
     if (0 != index && 0 != index % kRowLength) {
-      printf(" ");
+      putchar(' ');
     }
 
-    printf("%d", opcodes[index]);
+    printf("%d", instructions[index]);
   }
 
   puts("");
 }
 
 void RunVm() {
-  int instruction = 0;
+  instruction_index = 0;
 
   while (true) {
-    const unsigned char kOpCode = opcodes[instruction++];
+    const Opcode kOpcode = instructions[instruction_index++];
 
-    switch (kOpCode) {
+    switch (kOpcode) {
       case kOpConstant: {
-        const unsigned char kIndex = opcodes[instruction++];
+        const size_t kIndex = instructions[instruction_index++];
 
         Push(kIndex);
 
@@ -285,7 +287,7 @@ void RunVm() {
         break;
       }
       case kOpPrint: {
-        const unsigned char kIndex = Pop();
+        const size_t kIndex = Pop();
 
         if (kTypeBoolean == constants.type[kIndex]) {
           printf("%s\n",
@@ -311,16 +313,16 @@ void RunVm() {
         break;
       }
       case kOpJumpIfFalse: {
-        int jump_address = opcodes[instruction++];
+        const size_t kJumpAddress = instructions[instruction_index++];
 
         if (*(int*)constants.pointer[Pop()] == 0) {
-          instruction = jump_address;
+          instruction_index = kJumpAddress;
         }
         break;
       }
       case kOpJump: {
-        instruction++;
-        instruction = opcodes[instruction];
+        instruction_index++;
+        instruction_index = instructions[instruction_index];
         break;
       }
       case kOpHalt: {
