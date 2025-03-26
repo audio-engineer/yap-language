@@ -2,10 +2,6 @@
 #define LEXER_H
 
 #ifdef __CC65__
-#include <stdbool.h>
-#endif
-
-#ifdef __CC65__
 enum { kTokenTextBufferSize = 100 };
 #else
 static constexpr int kTokenTextBufferSize = 100;
