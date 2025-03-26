@@ -168,7 +168,7 @@ static void ParsePrintStatement() {
 /**
  * Grammar: if(expression) statement* endif
  */
-// NOLINTBEGIN(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
 static void ParseIfStatement() {
   size_t if_jump_address_index = 0;
   ConsumeNextToken();
@@ -223,9 +223,8 @@ static void ParseIfStatement() {
   }
   ConsumeNextToken();
 }
-// NOLINTEND(misc-no-recursion)
 
-// NOLINTBEGIN(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
 static void ParseStatement() {
   switch (token.type) {
     case kTokenPrint:
@@ -242,7 +241,6 @@ static void ParseStatement() {
       token.type = kTokenEof;
   }
 }
-// NOLINTEND(misc-no-recursion)
 
 void ParseProgram(const char* const source_code_parameter) {
   source_code = source_code_parameter;
