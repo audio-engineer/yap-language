@@ -37,12 +37,6 @@ static void PrintHelp() {
   puts("dir   Return to direct mode.");
 }
 
-static void EmitHalt() {
-  if (kOpHalt != opcodes[opcode_index - 1]) {
-    EmitByte(kOpHalt);
-  }
-}
-
 static void PrintMode(const char* const mode) {
   puts("");
   printf("%s mode.\n", mode);
@@ -59,10 +53,7 @@ static void DirectMode() {
     return;
   }
 
-  if (kOpHalt == opcodes[opcode_index - 1]) {
-    opcodes[opcode_index--] = 0;
-  }
-
+  RemoveHalt();
   ParseProgram(line_buffer);
   EmitHalt();
   RunVm();
@@ -91,11 +82,9 @@ static void ProgramMode() {
     return;
   }
 
-  line_buffer_length = strlen(line_buffer);
+  RemoveHalt();
 
-  if (kOpHalt == opcodes[opcode_index - 1]) {
-    opcodes[opcode_index--] = 0;
-  }
+  line_buffer_length = strlen(line_buffer);
 
   if (program_buffer_index + line_buffer_length + 1 < kProgramBufferSize) {
     // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)

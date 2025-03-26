@@ -46,6 +46,18 @@ static size_t Pop() { return stack[--stack_index]; }
 
 void EmitByte(const unsigned char byte) { opcodes[opcode_index++] = byte; }
 
+void EmitHalt() {
+  if (kOpHalt != instructions[instruction_index - 1]) {
+    EmitByte(kOpHalt);
+  }
+}
+
+void RemoveHalt() {
+  if (kOpHalt == instructions[instruction_index - 1]) {
+    instructions[instruction_index--] = 0;
+  }
+}
+
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 size_t AddNumberConstant(const int value, const ConstantType constant_type) {
   // TODO(Martin): Add check for number_pool overflow.
