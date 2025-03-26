@@ -6,21 +6,40 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef __CC65__
+enum {
+  kConstantsSize = 128,
+  kStringPoolSize = 512,
+  kNumberPoolSize = 64,
+  kStackSize = 16
+};
+#else
+static constexpr int kConstantsSize = 128;
+static constexpr int kStringPoolSize = 512;
+static constexpr int kNumberPoolSize = 64;
+static constexpr int kStackSize = 16;
+#endif
+
+typedef struct Constants {
+  const void* pointer[kConstantsSize];
+  ConstantType type[kConstantsSize];
+} Constants;
+
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 unsigned char instructions[kInstructionsSize];
 size_t instruction_index = 0;
 
-Constants constants;
-size_t constants_index = 0;
+static Constants constants;
+static size_t constants_index = 0;
 
-char string_pool[kStringPoolSize];
-size_t string_pool_index = 0;
+static char string_pool[kStringPoolSize];
+static size_t string_pool_index = 0;
 
-long number_pool[kNumberPoolSize];
-size_t number_pool_index = 0;
+static int number_pool[kNumberPoolSize];
+static size_t number_pool_index = 0;
 
-size_t stack[kStackSize];
-size_t stack_index = 0;
+static size_t stack[kStackSize];
+static size_t stack_index = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 void ResetInterpreterState() {
