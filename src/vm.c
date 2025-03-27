@@ -340,8 +340,10 @@ void RunVm() {
         break;
       }
       case kOpJump: {
-        instruction_index++;
-        instruction_index = instructions[instruction_index];
+        const size_t kJumpAddress = instructions[instruction_index++];
+
+        instruction_index = kJumpAddress;
+
         break;
       }
       case kOpHalt: {
