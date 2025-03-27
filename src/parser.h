@@ -1,6 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-void ParseProgram(const char* source_code_parameter);
+void ParseProgram(void);
 
 #endif  // PARSER_H
