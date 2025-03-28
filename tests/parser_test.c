@@ -4,6 +4,7 @@
 #include <unity.h>
 #include <vm.h>
 
+#include "lexer_test.h"
 #include "parser_test.h"
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables,-warnings-as-errors)
@@ -19,7 +20,8 @@ static void ResetTest() {
 }
 
 void TestRecursiveArithmetic() {
-  ParseProgram("print(6+3*5-1/1)");
+  SetTest("print(6+3*5-1/1)");
+  ParseProgram();
 
   const unsigned char kExpectedOpcodes[kInstructionsSize] = {
       kOpConstant, NextConstant(), kOpConstant, NextConstant(),
@@ -34,7 +36,8 @@ void TestRecursiveArithmetic() {
 }
 
 static void TestCondition(const char* source_code, const Opcode opcode) {
-  ParseProgram(source_code);
+  SetTest(source_code);
+  ParseProgram();
 
   const unsigned char kExpectedOpcodes[kInstructionsSize] = {
       kOpConstant,    NextConstant(), kOpConstant,
@@ -73,7 +76,8 @@ void TestEqualCondition() { TestCondition("print(1 == 10)", kOpEquals); }
 void TestNotEqualCondition() { TestCondition("print(1 != 10)", kOpNotEquals); }
 
 void TestTrueBoolean() {
-  ParseProgram("print(true)");
+  SetTest("print(true)");
+  ParseProgram();
 
   const unsigned char kExpectedOpcodes[kInstructionsSize] = {
       kOpConstant, NextConstant(), kOpPrint};
@@ -85,7 +89,8 @@ void TestTrueBoolean() {
 }
 
 void TestFalseBoolean() {
-  ParseProgram("print(false)");
+  SetTest("print(false)");
+  ParseProgram();
 
   const unsigned char kExpectedOpcodes[kInstructionsSize] = {
       kOpConstant, NextConstant(), kOpPrint};
@@ -97,7 +102,8 @@ void TestFalseBoolean() {
 }
 
 void TestStringParse() {
-  ParseProgram("print(\"something\")");
+  SetTest("print(\"something\")");
+  ParseProgram();
 
   const unsigned char kExpectedOpcodes[kInstructionsSize] = {
       kOpConstant, NextConstant(), kOpPrint};
@@ -109,7 +115,8 @@ void TestStringParse() {
 }
 
 static void TestError(const char* source_code) {
-  ParseProgram(source_code);
+  SetTest(source_code);
+  ParseProgram();
 
   constexpr unsigned char kExpectedOpcodes[kInstructionsSize] = {};
 

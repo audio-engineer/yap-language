@@ -1,10 +1,16 @@
 #ifndef LEXER_H
 #define LEXER_H
+#if defined(__CC65__) || defined(__linux__)
+#include <stddef.h>
+#elif __APPLE__
+#include <sys/_types/_size_t.h>
+#endif
 
 #ifdef __CC65__
-enum { kTokenTextBufferSize = 100 };
+enum { kTokenTextBufferSize = 100, kProgramBufferSize = 8192 };
 #else
 static constexpr int kTokenTextBufferSize = 100;
+static constexpr int kProgramBufferSize = 8192;
 #endif
 
 typedef enum TokenType {
@@ -56,13 +62,15 @@ typedef struct Token {
     int number;
     char text[kTokenTextBufferSize];
   } value;
-  const char* start_of_token;
+  size_t start_of_token;
   Precedence precedence;
 } Token;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-extern const char* source_code;
 extern Token token;
+
+extern char program_buffer[];
+extern size_t program_buffer_index;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 /**

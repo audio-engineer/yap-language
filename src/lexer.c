@@ -4,17 +4,15 @@
 #ifdef __CC65__
 #include <stdbool.h>
 #endif
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
-#ifdef __CC65__
-const char* source_code = NULL;
-#else
-const char* source_code = nullptr;
-#endif
 Token token;
+char program_buffer[kProgramBufferSize];
+size_t program_buffer_index = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 typedef struct KeywordEntry {
@@ -33,33 +31,50 @@ static constexpr size_t kKeywordCount =
     sizeof(kKeywordMap) / sizeof(KeywordEntry);
 #endif
 
+static void IncrementProgramBufferIndex() {
+  if (kProgramBufferSize < program_buffer_index) {
+    puts("Error: program buffer overflow! Too many program lines!");
+    return;
+  }
+  program_buffer_index++;
+}
+static void DecrementProgramBufferIndex() {
+  if (0 == program_buffer_index) {
+    puts("Error: Unable to decrement, error in lexer");
+    return;
+  }
+  program_buffer_index--;
+}
+
 static void SkipWhitespace() {
-  while (*source_code && isspace(*source_code)) {
-    source_code++;
+  while (program_buffer[program_buffer_index] &&
+         isspace(program_buffer[program_buffer_index])) {
+    IncrementProgramBufferIndex();
   }
 }
 
 static bool IsString() {
   int length = 0;
 
-  if ('"' != *source_code) {
+  if ('"' != program_buffer[program_buffer_index]) {
     return false;
   }
 
-  source_code++;
+  IncrementProgramBufferIndex();
 
-  while (*source_code && '"' != *source_code) {
+  while (program_buffer[program_buffer_index] &&
+         '"' != program_buffer[program_buffer_index]) {
     if (length < sizeof(token.value.text) - 1) {
-      token.value.text[length++] = *source_code;
+      token.value.text[length++] = program_buffer[program_buffer_index];
     }
 
-    source_code++;
+    IncrementProgramBufferIndex();
   }
 
   token.value.text[length] = '\0';
 
-  if ('"' == *source_code) {
-    source_code++;
+  if ('"' == program_buffer[program_buffer_index]) {
+    IncrementProgramBufferIndex();
   }
 
   token.type = kTokenString;
@@ -70,10 +85,10 @@ static bool IsString() {
 }
 
 static bool IsCharacter() {
-  switch (*source_code) {
+  switch (program_buffer[program_buffer_index]) {
     case '=':
-      source_code++;
-      if (*source_code == '=') {
+      IncrementProgramBufferIndex();
+      if (program_buffer[program_buffer_index] == '=') {
         token.type = kTokenEquals;
         token.precedence = kPrecComparison;
 
@@ -82,19 +97,19 @@ static bool IsCharacter() {
 
       token.type = kTokenAssign;
       token.precedence = kPrecAssignment;
-      source_code--;
+      DecrementProgramBufferIndex();
 
       break;
     case '!':
-      source_code++;
-      if (*source_code == '=') {
+      IncrementProgramBufferIndex();
+      if (program_buffer[program_buffer_index] == '=') {
         token.type = kTokenNotEquals;
         token.precedence = kPrecComparison;
         break;
       }
       token.type = kTokenNot;
       token.precedence = kPrecUnary;
-      source_code--;
+      DecrementProgramBufferIndex();
 
       break;
     case '(':
@@ -125,8 +140,8 @@ static bool IsCharacter() {
       token.type = kTokenColon;
       break;
     case '>':
-      source_code++;
-      if ('=' == *source_code) {
+      IncrementProgramBufferIndex();
+      if ('=' == program_buffer[program_buffer_index]) {
         token.type = kTokenGreaterOrEquals;
         token.precedence = kPrecComparison;
 
@@ -135,13 +150,13 @@ static bool IsCharacter() {
 
       token.type = kTokenGreaterThan;
       token.precedence = kPrecComparison;
-      source_code--;
+      DecrementProgramBufferIndex();
 
       break;
     case '<':
-      source_code++;
+      IncrementProgramBufferIndex();
 
-      if ('=' == *source_code) {
+      if ('=' == program_buffer[program_buffer_index]) {
         token.type = kTokenLessOrEquals;
         token.precedence = kPrecComparison;
 
@@ -150,14 +165,14 @@ static bool IsCharacter() {
 
       token.type = kTokenLessThan;
       token.precedence = kPrecComparison;
-      source_code--;
+      DecrementProgramBufferIndex();
 
       break;
     default:
       return false;
   }
 
-  source_code++;
+  IncrementProgramBufferIndex();
 
   return true;
 }
@@ -206,26 +221,37 @@ static bool IsNumber() {
   char* end = nullptr;
   static constexpr int kBase = 10;
 #endif
-
-  if (!isdigit(*source_code)) {
+  int number = 0;
+  int count = 0;
+  if (!isdigit(program_buffer[program_buffer_index])) {
     return false;
   }
 
   token.type = kTokenNumber;
-  token.value.number = (int)strtol(source_code, &end, kBase);
+  token.value.number =
+      (int)strtol(&program_buffer[program_buffer_index], &end, kBase);
   token.precedence = kPrecPrimary;
 
-  // Move source code to first character after the digit
-  source_code = end;
+  // calculate how many digits in said number.
+  number = token.value.number;
+  while (number != 0) {
+    count++;
+    number /= kBase;
+  }
+  // increment index by said amount of digits.
+  while (count != 0) {
+    IncrementProgramBufferIndex();
+    count--;
+  }
 
   return true;
 }
 
 void ConsumeNextToken() {
   SkipWhitespace();
-  token.start_of_token = source_code;
+  token.start_of_token = program_buffer_index;
 
-  if ('\0' == *source_code) {
+  if ('\0' == program_buffer[program_buffer_index]) {
     token.type = kTokenEof;
 
     return;
@@ -235,16 +261,16 @@ void ConsumeNextToken() {
     return;
   }
 
-  if (isalpha(*source_code)) {
+  if (isalpha(program_buffer[program_buffer_index])) {
     int length = 0;
     char buffer[kTokenTextBufferSize];
 
-    while (isalnum(*source_code)) {
+    while (isalnum(program_buffer[program_buffer_index])) {
       if (length < (int)sizeof(buffer) - 1) {
-        buffer[length++] = *source_code;
+        buffer[length++] = program_buffer[program_buffer_index];
       }
 
-      source_code++;
+      IncrementProgramBufferIndex();
     }
 
     buffer[length] = '\0';
@@ -266,7 +292,8 @@ void ConsumeNextToken() {
     return;
   }
 
-  printf("Error: Unexpected token '%c'.\n", *source_code);
+  printf("Error: Unexpected token '%c'.\n",
+         program_buffer[program_buffer_index]);
 
   token.type = kTokenEof;
 }

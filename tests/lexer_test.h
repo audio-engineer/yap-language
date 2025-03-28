@@ -1,6 +1,7 @@
 #ifndef LEXER_TEST_H
 #define LEXER_TEST_H
 
+void SetTest(const char* string_input);
 void TestUndefinedToken();
 void TestSkipWhitespace();
 void TestPrintArithmetic();
