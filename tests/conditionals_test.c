@@ -3,6 +3,7 @@
 #elif __APPLE__
 #include <sys/_types/_size_t.h>
 #endif
+#include <lexer_test.h>
 #include <unity.h>
 
 #include "conditionals_test.h"
@@ -12,7 +13,8 @@
 static void Run(const char* code) {
   instruction_index = 0;
 
-  ParseProgram(code);
+  SetTest(code);
+  ParseProgram();
   EmitByte(kOpHalt);
 }
 
@@ -25,7 +27,7 @@ void TestIfTrueExecutesBlock() {
   bool saw_print = false;
   bool saw_halt = false;
 
-  for (size_t i = 0; i < instruction_index; ++i) {
+  for (size_t i = 0; i < kInstructionsSize; ++i) {
     if (instructions[i] == kOpJumpIfFalse) {
       saw_jump_if_false = true;
     }
@@ -49,7 +51,7 @@ void TestIfFalseSkipsBlock() {
 
   bool saw_print = false;
   bool saw_jump = true;
-  for (size_t i = 0; i < instruction_index; ++i) {
+  for (size_t i = 0; i < kInstructionsSize; ++i) {
     if (instructions[i] == kOpPrint) {
       saw_print = true;
     }
@@ -58,7 +60,7 @@ void TestIfFalseSkipsBlock() {
     }
   }
   TEST_ASSERT_TRUE_MESSAGE(saw_print, "Missing kOpPrint inside 'if' block");
-  TEST_ASSERT_TRUE_MESSAGE(saw_jump, "kOpJump should  not exist in bytecode");
+  TEST_ASSERT_TRUE_MESSAGE(saw_jump, "kOpJump should not exist in bytecode");
 
   RunVm();
 }
