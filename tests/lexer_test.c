@@ -1,23 +1,32 @@
 #include "lexer.h"
 
+#include <string.h>
 #include <unity.h>
 
 #include "lexer_test.h"
 
+void SetTest(const char* string_input) {
+  const size_t kStringLength = strlen(string_input);
+  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-warnings-as-errors)
+  memcpy(program_buffer, string_input, kStringLength);
+  program_buffer[kStringLength] = '\0';
+  program_buffer_index = 0;
+}
+
 void TestUndefinedToken() {
-  source_code = "^";
+  SetTest("^");
 
   ConsumeNextToken();  // ^
   TEST_ASSERT_EQUAL_INT(kTokenEof, token.type);
 }
 
 void TestSkipWhitespace() {
-  source_code = "     print(3+2)";
+  SetTest("     print(3+2)");
 
   ConsumeNextToken();  // print
   TEST_ASSERT_EQUAL_INT(kTokenPrint, token.type);
 
-  source_code = "print(  3 +2   )";
+  SetTest("print(  3 +2   )");
 
   ConsumeNextToken();  // print
   TEST_ASSERT_EQUAL_INT(kTokenPrint, token.type);
@@ -34,7 +43,7 @@ void TestSkipWhitespace() {
 }
 
 void TestPrintArithmetic() {
-  source_code = "print(3+2)";
+  SetTest("print(3+2)");
 
   ConsumeNextToken();  // print
   TEST_ASSERT_EQUAL_INT(kTokenPrint, token.type);
@@ -61,7 +70,7 @@ void TestPrintArithmetic() {
 }
 
 void TestMinus() {
-  source_code = "20-15";
+  SetTest("20-15");
 
   ConsumeNextToken();  // 20
   ConsumeNextToken();  // -
@@ -69,7 +78,7 @@ void TestMinus() {
 }
 
 void TestStar() {
-  source_code = "4*97";
+  SetTest("4*97");
 
   ConsumeNextToken();  // 4
   ConsumeNextToken();  // *
@@ -77,7 +86,7 @@ void TestStar() {
 }
 
 void TestSlash() {
-  source_code = "60/3";
+  SetTest("60/3");
 
   ConsumeNextToken();  // 60
   ConsumeNextToken();  // /
@@ -85,7 +94,7 @@ void TestSlash() {
 }
 
 void TestString() {
-  source_code = "\"Hello, world!\"";
+  SetTest("\"Hello, world!\"");
 
   ConsumeNextToken();  // Hello, world!
   TEST_ASSERT_EQUAL_INT(kTokenString, token.type);
@@ -93,7 +102,7 @@ void TestString() {
 }
 
 void TestPrintString() {
-  source_code = "print(\"Hello, world!\")";
+  SetTest("print(\"Hello, world!\")");
 
   ConsumeNextToken();  // print
   ConsumeNextToken();  // (
@@ -103,7 +112,7 @@ void TestPrintString() {
 }
 
 void TestIdentifier() {
-  source_code = "variable:int=";
+  SetTest("variable:int=");
 
   ConsumeNextToken();  // variable
   TEST_ASSERT_EQUAL_INT(kTokenId, token.type);
@@ -111,47 +120,47 @@ void TestIdentifier() {
 }
 
 void TestGreaterThan() {
-  source_code = ">flkd";
+  SetTest(">flkd");
 
   ConsumeNextToken();  // >
   TEST_ASSERT_EQUAL_INT(kTokenGreaterThan, token.type);
 }
 
 void TestLessThan() {
-  source_code = "<jvmv";
+  SetTest("<feflkd");
 
   ConsumeNextToken();  // <
   TEST_ASSERT_EQUAL_INT(kTokenLessThan, token.type);
 }
 
 void TestGreaterThanOrEqualTo() {
-  source_code = ">=fjkle";
+  SetTest(">=jffevmv");
 
   ConsumeNextToken();  // >=
   TEST_ASSERT_EQUAL_INT(kTokenGreaterOrEquals, token.type);
 }
 
 void TestLessThanOrEqualTo() {
-  source_code = "<=radf";
+  SetTest("<=grgrjvmv");
 
   ConsumeNextToken();  // <=
   TEST_ASSERT_EQUAL_INT(kTokenLessOrEquals, token.type);
 }
 
 void TestBooleanLiteral() {
-  source_code = "true";
+  SetTest("true");
 
   ConsumeNextToken();  // true
   TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
   TEST_ASSERT_EQUAL_INT(1, token.value.number);
 
-  source_code = "false";
+  SetTest("false");
 
   ConsumeNextToken();  // false
   TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
   TEST_ASSERT_EQUAL_INT(0, token.value.number);
 
-  source_code = "x: bool=false";
+  SetTest("x: bool=false");
 
   ConsumeNextToken();  // x
   ConsumeNextToken();  // :
@@ -163,7 +172,7 @@ void TestBooleanLiteral() {
 }
 
 void TestIf() {
-  source_code = "if(true)print(\"Hello, world!\")endif";
+  SetTest("if(true)print(\"Hello, world!\")endif");
 
   ConsumeNextToken();  // if
   TEST_ASSERT_EQUAL_INT(kTokenIf, token.type);
@@ -180,7 +189,7 @@ void TestIf() {
 }
 
 void TestFor() {
-  source_code = "for(true)print(\"Hello, world!\")endfor";
+  SetTest("for(true)print(\"Hello, world!\")endfor");
 
   ConsumeNextToken();  // for
   TEST_ASSERT_EQUAL_INT(kTokenFor, token.type);
@@ -197,7 +206,7 @@ void TestFor() {
 }
 
 void TestNot() {
-  source_code = "print(!true)";
+  SetTest("print(!true)");
 
   ConsumeNextToken();  // print
   ConsumeNextToken();  // (

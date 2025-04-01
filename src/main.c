@@ -5,14 +5,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "lexer.h"
 #include "parser.h"
 #include "vm.h"
 
 #ifdef __CC65__
-enum { kClearScreen = 147, kLineBufferSize = 81, kProgramBufferSize = 8192 };
+enum { kClearScreen = 147, kLineBufferSize = 81 };
 #else
 static constexpr int kLineBufferSize = 81;
-static constexpr int kProgramBufferSize = 8192;
 #endif
 
 typedef enum ExecutionMode { kModeDirect, kModeProgram } ExecutionMode;
@@ -20,8 +20,6 @@ typedef enum ExecutionMode { kModeDirect, kModeProgram } ExecutionMode;
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 static ExecutionMode current_mode = kModeDirect;
 static char line_buffer[kLineBufferSize];
-static char program_buffer[kProgramBufferSize];
-static size_t program_buffer_index = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 static void PrintHelp() {
@@ -54,7 +52,10 @@ static void DirectMode() {
   }
 
   RemoveHalt();
-  ParseProgram(line_buffer);
+  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-warnings-as-errors)
+  memcpy(program_buffer, line_buffer, kLineBufferSize);
+  program_buffer_index = 0;
+  ParseProgram();
   EmitHalt();
   RunVm();
 }
@@ -66,8 +67,7 @@ static void ProgramMode() {
 
   if (0 == strncmp("run", line_buffer, 3)) {
     program_buffer[program_buffer_index] = '\0';
-
-    ParseProgram(program_buffer);
+    ParseProgram();
     EmitHalt();
     RunVm();
 

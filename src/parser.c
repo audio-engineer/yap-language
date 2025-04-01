@@ -1,5 +1,3 @@
-#include "parser.h"
-
 #include <stdio.h>
 #ifdef __linux__
 #include <stdlib.h>
@@ -9,6 +7,7 @@
 #include "benchmark.h"
 #endif
 #include "lexer.h"
+#include "parser.h"
 #include "vm.h"
 
 static void ParseStatement();
@@ -107,7 +106,7 @@ static void ParseNumericExpression(const Precedence precedence) {
 
     ConsumeNextToken();
   }
-  source_code = token.start_of_token;
+  program_buffer_index = token.start_of_token;
 }
 // NOLINTEND(misc-no-recursion)
 
@@ -242,9 +241,7 @@ static void ParseStatement() {
   }
 }
 
-void ParseProgram(const char* const source_code_parameter) {
-  source_code = source_code_parameter;
-
+void ParseProgram() {
 #if defined(__CC65__) && !defined(NDEBUG)
   StartTimerA();
 #endif
@@ -254,7 +251,6 @@ void ParseProgram(const char* const source_code_parameter) {
   while (kTokenEof != token.type) {
     ParseStatement();
   }
-
 #if defined(__CC65__) && !defined(NDEBUG)
   StopTimerA();
 #endif
