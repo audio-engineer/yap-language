@@ -35,6 +35,19 @@ void TestRecursiveArithmetic() {
   ResetTest();
 }
 
+void TestParenthesesArithemetic() {
+  SetTest("print(2*(2+5))");
+  ParseProgram();
+
+  const unsigned char kExpectedOpcodes[kInstructionsSize] = {
+      kOpConstant,    NextConstant(), kOpConstant, NextConstant(), kOpConstant,
+      NextConstant(), kOpAdd,         kOpMultiply, kOpPrint};
+
+  TEST_ASSERT_EQUAL_CHAR_ARRAY(kExpectedOpcodes, instructions,
+                               kInstructionsSize);
+  ResetTest();
+}
+
 static void TestCondition(const char* source_code, const Opcode opcode) {
   SetTest(source_code);
   ParseProgram();
@@ -57,6 +70,8 @@ void TestMultiplyArithmetic() { TestCondition("print(5 * 10)", kOpMultiply); }
 
 void TestDivideArithmetic() { TestCondition("print(10 / 5)", kOpDivide); }
 
+void TestModuloArithmetic() { TestCondition("print(10 % 5)", kOpModulo); }
+
 void TestLessThanCondition() { TestCondition("print(1 < 10)", kOpLessThan); }
 
 void TestLessOrEqualCondition() {
@@ -74,6 +89,36 @@ void TestGreaterOrEqualCondition() {
 void TestEqualCondition() { TestCondition("print(1 == 10)", kOpEquals); }
 
 void TestNotEqualCondition() { TestCondition("print(1 != 10)", kOpNotEquals); }
+
+void TestAndCondition() {
+  SetTest("print(3 > 10 && 10 < 3)");
+  ParseProgram();
+
+  const unsigned char kExpectedOpcodes[kInstructionsSize] = {
+      kOpConstant,    NextConstant(), kOpConstant,    NextConstant(),
+      kOpGreaterThan, kOpConstant,    NextConstant(), kOpConstant,
+      NextConstant(), kOpLessThan,    kOpAnd,         kOpPrint};
+
+  TEST_ASSERT_EQUAL_CHAR_ARRAY(kExpectedOpcodes, instructions,
+                               kInstructionsSize);
+
+  ResetTest();
+}
+
+void TestOrCondition() {
+  SetTest("print(3 > 10 || 10 < 3)");
+  ParseProgram();
+
+  const unsigned char kExpectedOpcodes[kInstructionsSize] = {
+      kOpConstant,    NextConstant(), kOpConstant,    NextConstant(),
+      kOpGreaterThan, kOpConstant,    NextConstant(), kOpConstant,
+      NextConstant(), kOpLessThan,    kOpOr,          kOpPrint};
+
+  TEST_ASSERT_EQUAL_CHAR_ARRAY(kExpectedOpcodes, instructions,
+                               kInstructionsSize);
+
+  ResetTest();
+}
 
 void TestTrueBoolean() {
   SetTest("print(true)");

@@ -140,6 +140,10 @@ static bool IsCharacter() {
       token.type = kTokenSlash;
       token.precedence = kPrecFactor;
       break;
+    case '%':
+      token.type = kTokenPercent;
+      token.precedence = kPrecFactor;
+      break;
     case ':':
       token.type = kTokenColon;
       break;
@@ -170,7 +174,26 @@ static bool IsCharacter() {
       token.type = kTokenLessThan;
       token.precedence = kPrecComparison;
       DecrementProgramBufferIndex();
-
+      break;
+    case '&':
+      IncrementProgramBufferIndex();
+      if ('&' == program_buffer[program_buffer_index]) {
+        token.type = kTokenAnd;
+        token.precedence = kPrecAnd;
+        break;
+      }
+      puts("Invalid Token: '&'");
+      DecrementProgramBufferIndex();
+      break;
+    case '|':
+      IncrementProgramBufferIndex();
+      if ('|' == program_buffer[program_buffer_index]) {
+        token.type = kTokenOr;
+        token.precedence = kPrecOr;
+        break;
+      }
+      puts("Invalid token '|'");
+      DecrementProgramBufferIndex();
       break;
     default:
       return false;

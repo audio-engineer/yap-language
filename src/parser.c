@@ -58,6 +58,9 @@ static void ParseOperator(const TokenType operation) {
     case kTokenSlash:
       EmitByte(kOpDivide);
       break;
+    case kTokenPercent:
+      EmitByte(kOpModulo);
+      break;
     case kTokenEquals:
       EmitByte(kOpEquals);
       break;
@@ -76,6 +79,12 @@ static void ParseOperator(const TokenType operation) {
     case kTokenLessOrEquals:
       EmitByte(kOpLessOrEquals);
       break;
+    case kTokenAnd:
+      EmitByte(kOpAnd);
+      break;
+    case kTokenOr:
+      EmitByte(kOpOr);
+      break;
     default:
       puts("Error: Undefined operator.");
       token.type = kTokenEof;
@@ -84,16 +93,28 @@ static void ParseOperator(const TokenType operation) {
 
 // NOLINTBEGIN(misc-no-recursion)
 static void ParseNumericExpression(const Precedence precedence) {
-  ParseNumber();
+  if (kTokenLeftParenthesis == token.type) {
+    ConsumeNextToken();
 
-  ConsumeNextToken();
+    ParseNumericExpression(kPrecNone);
+
+    ConsumeNextToken();
+    if (kTokenRightParenthesis != token.type) {
+      TokenTypeAssertionError(")", token.type);
+    }
+    ConsumeNextToken();
+  } else if (kTokenNumber == token.type) {
+    ParseNumber();
+    ConsumeNextToken();
+  }
 
   while ((kTokenPlus == token.type || kTokenMinus == token.type ||
           kTokenStar == token.type || kTokenGreaterThan == token.type ||
-          kTokenSlash == token.type || kTokenLessThan == token.type ||
-          kTokenGreaterOrEquals == token.type ||
+          kTokenSlash == token.type || kTokenPercent == token.type ||
+          kTokenLessThan == token.type || kTokenGreaterOrEquals == token.type ||
           kTokenLessOrEquals == token.type || kTokenEquals == token.type ||
-          kTokenNotEquals == token.type) &&
+          kTokenNotEquals == token.type || kTokenAnd == token.type ||
+          kTokenOr == token.type) &&
          precedence <= token.precedence) {
     const TokenType kOperation = token.type;
     const Precedence kNextPrecedence = token.precedence + 1;
@@ -113,6 +134,7 @@ static void ParseNumericExpression(const Precedence precedence) {
 static void ParseExpression() {
   switch (token.type) {
     case kTokenNumber:
+    case kTokenLeftParenthesis:
       ParseNumericExpression(kPrecNone);
       break;
     case kTokenBoolean:
