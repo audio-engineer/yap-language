@@ -19,6 +19,7 @@ int main() {
   RUN_TEST(TestMinus);
   RUN_TEST(TestStar);
   RUN_TEST(TestSlash);
+  RUN_TEST(TestPercent);
   RUN_TEST(TestString);
   RUN_TEST(TestPrintString);
   RUN_TEST(TestIdentifier);
@@ -33,16 +34,20 @@ int main() {
 
   // Parser
   RUN_TEST(TestRecursiveArithmetic);
+  RUN_TEST(TestParenthesesArithemetic);
   RUN_TEST(TestLessThanCondition);
   RUN_TEST(TestLessOrEqualCondition);
   RUN_TEST(TestGreaterThanCondition);
   RUN_TEST(TestGreaterOrEqualCondition);
   RUN_TEST(TestEqualCondition);
   RUN_TEST(TestNotEqualCondition);
+  RUN_TEST(TestAndCondition);
+  RUN_TEST(TestOrCondition);
   RUN_TEST(TestAddArithmetic);
   RUN_TEST(TestSubtractArithmetic);
   RUN_TEST(TestMultiplyArithmetic);
   RUN_TEST(TestDivideArithmetic);
+  RUN_TEST(TestModuloArithmetic);
   RUN_TEST(TestTrueBoolean);
   RUN_TEST(TestFalseBoolean);
   RUN_TEST(TestStringParse);

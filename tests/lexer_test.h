@@ -8,6 +8,7 @@ void TestPrintArithmetic();
 void TestMinus();
 void TestStar();
 void TestSlash();
+void TestPercent();
 void TestString();
 void TestPrintString();
 void TestIdentifier();

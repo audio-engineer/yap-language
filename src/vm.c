@@ -154,6 +154,7 @@ void PrintOpcodes() {
   puts("");
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity,-warnings-as-errors)
 void RunVm() {
   instruction_index = 0;
 
@@ -221,6 +222,27 @@ void RunVm() {
 
         result_index =
             AddNumberConstant(*(const int*)constants.pointer[kSecondTerm] /
+                                  *(const int*)constants.pointer[kFirstTerm],
+                              kTypeNumber);
+
+        Push(result_index);
+
+        break;
+      }
+      case kOpModulo: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+
+        size_t result_index = 0;
+
+        if (0 == *(const int*)constants.pointer[kFirstTerm]) {
+          puts("Error: Division by zero.");
+
+          return;
+        }
+
+        result_index =
+            AddNumberConstant(*(const int*)constants.pointer[kSecondTerm] %
                                   *(const int*)constants.pointer[kFirstTerm],
                               kTypeNumber);
 
@@ -303,6 +325,28 @@ void RunVm() {
             kTypeBoolean);
         Push(kResultIndex);
 
+        break;
+      }
+      case kOpAnd: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+
+        const size_t kResultIndex = AddNumberConstant(
+            0 != (*(const int*)constants.pointer[kSecondTerm] &&
+                  *(const int*)constants.pointer[kFirstTerm]),
+            kTypeBoolean);
+        Push(kResultIndex);
+        break;
+      }
+      case kOpOr: {
+        const size_t kFirstTerm = Pop();
+        const size_t kSecondTerm = Pop();
+
+        const size_t kResultIndex = AddNumberConstant(
+            0 != (*(const int*)constants.pointer[kSecondTerm] ||
+                  *(const int*)constants.pointer[kFirstTerm]),
+            kTypeBoolean);
+        Push(kResultIndex);
         break;
       }
       case kOpPrint: {

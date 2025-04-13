@@ -93,6 +93,14 @@ void TestSlash() {
   TEST_ASSERT_EQUAL_INT(kTokenSlash, token.type);
 }
 
+void TestPercent() {
+  SetTest("60%3");
+
+  ConsumeNextToken();  // 60
+  ConsumeNextToken();  // %
+  TEST_ASSERT_EQUAL_INT(kTokenPercent, token.type);
+}
+
 void TestString() {
   SetTest("\"Hello, world!\"");
 
