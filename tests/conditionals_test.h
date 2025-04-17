@@ -5,5 +5,6 @@ void TestIfTrueExecutesBlock();
 void TestIfFalseSkipsBlock();
 void TestIfGreaterThanComparison();
 void TestIfLessThanComparison();
+void TestElse();
 
 #endif  // CONDITIONALS_TEST_H

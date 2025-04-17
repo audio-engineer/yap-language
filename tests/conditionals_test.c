@@ -76,3 +76,9 @@ void TestIfLessThanComparison() {
 
   RunVm();
 }
+
+void TestElse() {
+  Run("if(3>2) print(\"foo\") else print(\"bar\") endif");
+
+  RunVm();
+}

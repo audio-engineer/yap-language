@@ -55,6 +55,7 @@ int main() {
   RUN_TEST(TestIfFalseSkipsBlock);
   RUN_TEST(TestIfGreaterThanComparison);
   RUN_TEST(TestIfLessThanComparison);
+  RUN_TEST(TestElse);
 
   return UNITY_END();
 }
