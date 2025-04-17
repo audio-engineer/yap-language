@@ -58,7 +58,7 @@ endif
 
 LDFLAGS := -t $(PLATFORM)
 ifeq ($(BUILD_TYPE),Debug)
-LDFLAGS += -m $(BUILD_DIR)/$(EXECUTABLE_NAME).map
+LDFLAGS += -m $(BUILD_DIR)/$(EXECUTABLE_NAME).map -Ln $(BUILD_DIR)/$(EXECUTABLE_NAME).lbl
 endif
 
 ASMFILES := $(patsubst %.c,$(BUILD_DIR)/%.s,$(notdir $(SOURCES)))
