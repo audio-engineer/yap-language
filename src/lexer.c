@@ -188,6 +188,10 @@ static bool IsCharacter() {
       break;
     case ':':
       token.type = kTokenColon;
+      break;
+
+    case ';':
+      token.type = kTokenSemicolon;
 
       break;
     case '>':

@@ -731,6 +731,51 @@ static void ParseIdentifierStatement(const char* const identifier_name) {
   puts("Error: Unexpected token after identifier.");
 }
 
+/**
+ * Grammar: while(condition) statement* endwhile
+ */
+// NOLINTNEXTLINE(misc-no-recursion) //
+/*static void ParseWhileStatement() {
+  ConsumeNextToken();
+
+  if (kTokenLeftParenthesis != token.type) {
+    TokenTypeAssertionError("(", token.type);
+
+    return;
+  }
+  ConsumeNextToken();
+
+  // loop_start marks the jump location for the condition
+  size_t loop_start = instruction_index;
+  ParseExpression();
+
+  if (kTokenRightParenthesis != token.type) {
+    TokenTypeAssertionError(")", token.type);
+
+    return;
+  }
+  ConsumeNextToken();
+
+  EmitByte(kOpJumpIfFalse);
+  size_t leave_loop_index = instruction_index;
+  EmitByte(0);
+
+  while (token.type != kTokenEndwhile && token.type != kTokenEof) {
+    ParseStatement();
+  }
+
+  EmitByte(kOpJump);
+  EmitByte(loop_start);
+
+  instructions[leave_loop_index] = instruction_index;
+
+  if (token.type != kTokenEndwhile) {
+    TokenTypeAssertionError("endwhile", token.type);
+    return;
+  }
+  ConsumeNextToken();
+} */
+
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParseStatement() {
   char identifier_name[kIdentifierNameLength];
@@ -764,6 +809,19 @@ static void ParseStatement() {
 
     ParseExpression();
   }
+
+    /* Doesnt work anymore with changes.
+     * case kTokenWhile:
+      ParseWhileStatement();
+
+      break;
+    case kTokenFor:
+      ParseForStatement();
+
+      break;
+  default:
+    printf("Error: Unregistered statement '%s'.\n", token.value.text);
+  return; */
 
   printf("Error: Unregistered statement '%s'.\n", identifier_name);
 

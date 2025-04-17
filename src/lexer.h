@@ -46,6 +46,7 @@ typedef enum TokenType {
   kTokenDot,
   kTokenComma,
   kTokenColon,
+  kTokenSemicolon,
   kTokenAssign,
   kTokenEquals,
   kTokenNot,
