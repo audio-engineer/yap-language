@@ -20,6 +20,7 @@ typedef enum ExecutionMode { kModeDirect, kModeProgram } ExecutionMode;
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 static ExecutionMode current_mode = kModeDirect;
 static char line_buffer[kLineBufferSize];
+static size_t line_buffer_length = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 static void PrintHelp() {
@@ -43,41 +44,30 @@ static void PrintMode(const char* const mode) {
 static void DirectMode() {
   ResetInterpreterState();
 
-  if (0 == strncmp("prog", line_buffer, 4)) {
-    current_mode = kModeProgram;
-
-    PrintMode("Program");
-
-    return;
-  }
+  program_buffer_index = 0;
 
   RemoveHalt();
+
+  line_buffer_length = strlen(line_buffer);
+
   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-warnings-as-errors)
-  memcpy(program_buffer, line_buffer, kLineBufferSize);
+  memcpy(&program_buffer[program_buffer_index], line_buffer,
+         line_buffer_length);
+
   program_buffer_index = 0;
+
   ParseProgram();
   EmitHalt();
   RunVm();
 }
 
 static void ProgramMode() {
-  size_t line_buffer_length = 0;
-
-  ResetInterpreterState();
-
   if (0 == strncmp("run", line_buffer, 3)) {
-    program_buffer[program_buffer_index] = '\0';
+    program_buffer_index = 0;
+
     ParseProgram();
     EmitHalt();
     RunVm();
-
-    return;
-  }
-
-  if (0 == strncmp("dir", line_buffer, 3)) {
-    current_mode = kModeDirect;
-
-    PrintMode("Direct");
 
     return;
   }
@@ -86,17 +76,17 @@ static void ProgramMode() {
 
   line_buffer_length = strlen(line_buffer);
 
-  if (program_buffer_index + line_buffer_length + 1 < kProgramBufferSize) {
-    // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-    memcpy(&program_buffer[program_buffer_index], line_buffer,
-           line_buffer_length);
-
-    program_buffer_index += line_buffer_length;
+  if (kProgramBufferSize <= program_buffer_index + line_buffer_length + 1) {
+    puts("Error: Program buffer overflow.");
 
     return;
   }
 
-  puts("Error: Program buffer overflow.");
+  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+  memcpy(&program_buffer[program_buffer_index], line_buffer,
+         line_buffer_length);
+
+  program_buffer_index += line_buffer_length;
 }
 
 int main() {
@@ -143,6 +133,28 @@ int main() {
 
     if (0 == strncmp("ops", line_buffer, 3)) {
       PrintOpcodes();
+
+      continue;
+    }
+
+    if (0 == strncmp("prog", line_buffer, 4) && kModeDirect == current_mode) {
+      ResetInterpreterState();
+
+      program_buffer_index = 0;
+      current_mode = kModeProgram;
+
+      PrintMode("Program");
+
+      continue;
+    }
+
+    if (0 == strncmp("dir", line_buffer, 3) && kModeProgram == current_mode) {
+      ResetInterpreterState();
+
+      program_buffer_index = 0;
+      current_mode = kModeDirect;
+
+      PrintMode("Direct");
 
       continue;
     }

@@ -1,9 +1,18 @@
 #ifndef LEXER_H
 #define LEXER_H
+
+#ifdef __CC65__
+#include <stdbool.h>
+#endif
+
 #if defined(__CC65__) || defined(__linux__)
 #include <stddef.h>
 #elif __APPLE__
 #include <sys/_types/_size_t.h>
+#endif
+
+#if !defined(__CC65__)
+#define __cdecl__
 #endif
 
 #ifdef __CC65__
@@ -15,12 +24,14 @@ static constexpr int kProgramBufferSize = 8192;
 
 typedef enum TokenType {
   kTokenEof,
-  kTokenId,
+  kTokenIdentifier,
   kTokenNumber,
   kTokenPlus,
   kTokenMinus,
   kTokenStar,
   kTokenSlash,
+  kTokenDot,
+  kTokenComma,
   kTokenColon,
   kTokenAssign,
   kTokenEquals,
@@ -39,7 +50,15 @@ typedef enum TokenType {
   kTokenFor,
   kTokenEndfor,
   kTokenPrint,
-  kTokenBoolean
+  kTokenLocal,
+  kTokenBoolean,
+  kTokenFunc,
+  kTokenEndfunc,
+  kTokenRet,
+  kTokenInt,
+  kTokenFloat,
+  kTokenStr,
+  kTokenBool
 } TokenType;
 
 typedef enum {
@@ -68,14 +87,24 @@ typedef struct Token {
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern Token token;
-
+extern Token next_token;
 extern char program_buffer[];
 extern size_t program_buffer_index;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
-/**
- * Parse tokens.
- */
+bool __cdecl__ AcceptToken(size_t token_type_list_length, ...);
+
+bool __cdecl__ ExpectToken(size_t token_type_list_length, ...);
+
+void ResetLexerState();
+
+void ExtractIdentifierName(char* buffer);
+
+bool IsBinaryOperator(TokenType token_type);
+
+/// Parse tokens.
 void ConsumeNextToken();
+
+void PeekNextToken();
 
 #endif  // LEXER_H
