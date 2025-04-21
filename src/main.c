@@ -20,6 +20,7 @@ typedef enum ExecutionMode { kModeDirect, kModeProgram } ExecutionMode;
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 static ExecutionMode current_mode = kModeDirect;
 static char line_buffer[kLineBufferSize];
+static size_t line_buffer_length = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 static void PrintHelp() {
@@ -31,7 +32,8 @@ static void PrintHelp() {
   puts("Direct mode:");
   puts("prog  Enter program mode.");
   puts("Program mode:");
-  puts("run   Run program in program mode.");
+  puts("run   Run entire program.");
+  puts("cont  Run program.");
   puts("dir   Return to direct mode.");
 }
 
@@ -40,44 +42,37 @@ static void PrintMode(const char* const mode) {
   printf("%s mode.\n", mode);
 }
 
-static void DirectMode() {
-  ResetInterpreterState();
-
-  if (0 == strncmp("prog", line_buffer, 4)) {
-    current_mode = kModeProgram;
-
-    PrintMode("Program");
-
-    return;
-  }
-
-  RemoveHalt();
-  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-warnings-as-errors)
-  memcpy(program_buffer, line_buffer, kLineBufferSize);
+static void CompileProgram() {
   program_buffer_index = 0;
+
+  ResetInterpreterState();
   ParseProgram();
   EmitHalt();
+}
+
+static void DirectMode() {
+  ResetLexerState();
+
+  line_buffer_length = strlen(line_buffer);
+
+  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+  memcpy(&program_buffer[program_buffer_index], line_buffer,
+         line_buffer_length);
+
+  CompileProgram();
   RunVm();
 }
 
 static void ProgramMode() {
-  size_t line_buffer_length = 0;
-
-  ResetInterpreterState();
-
-  if (0 == strncmp("run", line_buffer, 3)) {
-    program_buffer[program_buffer_index] = '\0';
-    ParseProgram();
-    EmitHalt();
+  if (0 == strncmp("cont", line_buffer, 4)) {
     RunVm();
 
     return;
   }
 
-  if (0 == strncmp("dir", line_buffer, 3)) {
-    current_mode = kModeDirect;
-
-    PrintMode("Direct");
+  if (0 == strncmp("run", line_buffer, 3)) {
+    CompileProgram();
+    RunVm();
 
     return;
   }
@@ -86,17 +81,17 @@ static void ProgramMode() {
 
   line_buffer_length = strlen(line_buffer);
 
-  if (program_buffer_index + line_buffer_length + 1 < kProgramBufferSize) {
-    // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-    memcpy(&program_buffer[program_buffer_index], line_buffer,
-           line_buffer_length);
-
-    program_buffer_index += line_buffer_length;
+  if (kProgramBufferSize <= program_buffer_index + line_buffer_length + 1) {
+    puts("Error: Program buffer overflow.");
 
     return;
   }
 
-  puts("Error: Program buffer overflow.");
+  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+  memcpy(&program_buffer[program_buffer_index], line_buffer,
+         line_buffer_length);
+
+  program_buffer_index += line_buffer_length;
 }
 
 int main() {
@@ -127,8 +122,8 @@ int main() {
 
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     if (0 == strncmp(line_buffer, "clear", 5)) {
+      ResetLexerState();
       ResetInterpreterState();
-      program_buffer_index = 0;
 
       puts("Cleared.");
 
@@ -143,6 +138,28 @@ int main() {
 
     if (0 == strncmp("ops", line_buffer, 3)) {
       PrintOpcodes();
+
+      continue;
+    }
+
+    if (0 == strncmp("prog", line_buffer, 4) && kModeDirect == current_mode) {
+      ResetLexerState();
+      ResetInterpreterState();
+
+      current_mode = kModeProgram;
+
+      PrintMode("Program");
+
+      continue;
+    }
+
+    if (0 == strncmp("dir", line_buffer, 3) && kModeProgram == current_mode) {
+      ResetLexerState();
+      ResetInterpreterState();
+
+      current_mode = kModeDirect;
+
+      PrintMode("Direct");
 
       continue;
     }

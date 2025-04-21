@@ -1,7 +1,6 @@
 #ifndef LEXER_TEST_H
 #define LEXER_TEST_H
 
-void SetTest(const char* string_input);
 void TestUndefinedToken();
 void TestSkipWhitespace();
 void TestPrintArithmetic();
@@ -19,5 +18,16 @@ void TestBooleanLiteral();
 void TestIf();
 void TestFor();
 void TestNot();
+void TestIntVariableDeclaration();
+void TestBoolVariableDeclaration();
+void TestStrVariableDeclaration();
+void TestFloatVariableDeclaration();
+void TestVariableAssignment();
+void TestPrintIdentifier();
+void TestJumpOverNewline();
+void TestFunctionDeclaration();
+void TestFunctionDeclarationPrintAndCall();
+void TestFunctionCallComma();
+void TestFunctionCallInPrint();
 
 #endif  // LEXER_TEST_H

@@ -60,7 +60,7 @@ run_clang_tidy() {
   assert_debug_target $native_debug_bin
 
   info 'Running ClangTidy on the Commodore version...'
-  $clang_tidy --quiet --config-file .clang-tidy --extra-arg=-std=c99 --extra-arg=-D__CC65__ --extra-arg=-DNNEAR src/*.[ch]
+  $clang_tidy --quiet --config-file .clang-tidy --extra-arg=-std=c99 --extra-arg=-D__CC65__ src/*.[ch]
 
   echo
   info 'Running ClangTidy on the native version...'
@@ -82,6 +82,7 @@ run_cppcheck() {
     --std=c23 \
     --enable=all \
     --check-level=exhaustive \
+    --inline-suppr \
     --suppress=*:*unity.c \
     --suppress=missingIncludeSystem:* \
     --project=$build_native_debug_dir/compile_commands.json \

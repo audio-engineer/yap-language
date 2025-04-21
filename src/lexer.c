@@ -1,13 +1,12 @@
 #include "lexer.h"
 
 #include <ctype.h>
+#include <stdarg.h>
 #ifdef __CC65__
 #include <stdbool.h>
 #endif
 #if defined(__CC65__) || defined(__linux__)
 #include <stddef.h>
-#elif __APPLE__
-#include <sys/_types/_size_t.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +14,7 @@
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 Token token;
+Token next_token;
 char program_buffer[kProgramBufferSize];
 size_t program_buffer_index = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
@@ -25,8 +25,11 @@ typedef struct KeywordEntry {
 } KeywordEntry;
 
 static const KeywordEntry kKeywordMap[] = {
-    {"print", kTokenPrint}, {"if", kTokenIf},   {"else", kTokenElse},
-    {"endif", kTokenEndif}, {"for", kTokenFor}, {"endfor", kTokenEndfor}};
+    {"print", kTokenPrint}, {"if", kTokenIf},     {"else", kTokenElse},
+    {"endif", kTokenEndif}, {"for", kTokenFor},   {"endfor", kTokenEndfor},
+    {"local", kTokenLocal}, {"func", kTokenFunc}, {"endfunc", kTokenEndfunc},
+    {"ret", kTokenRet},     {"int", kTokenInt},   {"float", kTokenFloat},
+    {"str", kTokenStr},     {"bool", kTokenBool}};
 
 #ifdef __CC65__
 static const size_t kKeywordCount = sizeof(kKeywordMap) / sizeof(KeywordEntry);
@@ -35,19 +38,62 @@ static constexpr size_t kKeywordCount =
     sizeof(kKeywordMap) / sizeof(KeywordEntry);
 #endif
 
+void ResetLexerState() {
+  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+  memset(program_buffer, 0, kProgramBufferSize);
+
+  program_buffer_index = 0;
+}
+
 static void IncrementProgramBufferIndex() {
   if (kProgramBufferSize < program_buffer_index) {
-    puts("Error: program buffer overflow! Too many program lines!");
+    puts("Error: Program buffer overflow.");
+
     return;
   }
-  program_buffer_index++;
+
+  ++program_buffer_index;
 }
+
 static void DecrementProgramBufferIndex() {
   if (0 == program_buffer_index) {
-    puts("Error: Unable to decrement, error in lexer");
+    puts("Error: Program buffer underflow.");
+
     return;
   }
-  program_buffer_index--;
+
+  --program_buffer_index;
+}
+
+bool __cdecl__ AcceptTokenImplementation(const size_t token_type_list_length,
+                                         ...) {
+#ifdef __CC65__
+  // NOLINTNEXTLINE(cppcoreguidelines-init-variables)
+  va_list args;
+#else
+  // cppcheck-suppress va_list_usedBeforeStarted
+  va_list args = {};
+#endif
+
+  size_t index = 0;
+
+  va_start(args, token_type_list_length);
+
+  for (index = 0; index < token_type_list_length; ++index) {
+    const TokenType kTokenType = va_arg(args, TokenType);
+
+    if (kTokenType == token.type) {
+      ConsumeNextToken();
+
+      va_end(args);
+
+      return true;
+    }
+  }
+
+  va_end(args);
+
+  return false;
 }
 
 static void SkipWhitespace() {
@@ -83,8 +129,6 @@ static bool IsString() {
 
   token.type = kTokenString;
 
-  token.precedence = kPrecPrimary;
-
   return true;
 }
 
@@ -92,68 +136,71 @@ static bool IsCharacter() {
   switch (program_buffer[program_buffer_index]) {
     case '=':
       IncrementProgramBufferIndex();
-      if (program_buffer[program_buffer_index] == '=') {
+
+      if ('=' == program_buffer[program_buffer_index]) {
         token.type = kTokenEquals;
-        token.precedence = kPrecComparison;
 
         break;
       }
 
       token.type = kTokenAssign;
-      token.precedence = kPrecAssignment;
+
       DecrementProgramBufferIndex();
 
       break;
     case '!':
       IncrementProgramBufferIndex();
-      if (program_buffer[program_buffer_index] == '=') {
+
+      if ('=' == program_buffer[program_buffer_index]) {
         token.type = kTokenNotEquals;
-        token.precedence = kPrecComparison;
+
         break;
       }
+
       token.type = kTokenNot;
-      token.precedence = kPrecUnary;
+
       DecrementProgramBufferIndex();
 
       break;
     case '(':
       token.type = kTokenLeftParenthesis;
-      token.precedence = kPrecPrimary;
+
       break;
     case ')':
       token.type = kTokenRightParenthesis;
-      token.precedence = kPrecPrimary;
+
       break;
     case '+':
       token.type = kTokenPlus;
-      token.precedence = kPrecTerm;
+
       break;
     case '-':
       token.type = kTokenMinus;
-      token.precedence = kPrecTerm;
+
       break;
     case '*':
       token.type = kTokenStar;
-      token.precedence = kPrecFactor;
+
       break;
     case '/':
       token.type = kTokenSlash;
-      token.precedence = kPrecFactor;
+
       break;
     case ':':
       token.type = kTokenColon;
+
       break;
     case '>':
       IncrementProgramBufferIndex();
+
       if ('=' == program_buffer[program_buffer_index]) {
         token.type = kTokenGreaterOrEquals;
-        token.precedence = kPrecComparison;
 
         break;
       }
 
       token.type = kTokenGreaterThan;
-      token.precedence = kPrecComparison;
+
       DecrementProgramBufferIndex();
 
       break;
@@ -162,14 +209,21 @@ static bool IsCharacter() {
 
       if ('=' == program_buffer[program_buffer_index]) {
         token.type = kTokenLessOrEquals;
-        token.precedence = kPrecComparison;
 
         break;
       }
 
       token.type = kTokenLessThan;
-      token.precedence = kPrecComparison;
+
       DecrementProgramBufferIndex();
+
+      break;
+    case ',':
+      token.type = kTokenComma;
+
+      break;
+    case '.':
+      token.type = kTokenDot;
 
       break;
     default:
@@ -184,9 +238,11 @@ static bool IsCharacter() {
 static bool IsKeyword(const char* const buffer) {
   size_t keyword_index = 0;
 
-  for (keyword_index = 0; keyword_index < kKeywordCount; keyword_index++) {
-    if (0 == strncmp(buffer, kKeywordMap[keyword_index].kText,
-                     strlen(kKeywordMap[keyword_index].kText))) {
+  for (keyword_index = 0; keyword_index < kKeywordCount; ++keyword_index) {
+    const size_t kKeywordTextLength = strlen(kKeywordMap[keyword_index].kText);
+
+    if (0 ==
+        strncmp(buffer, kKeywordMap[keyword_index].kText, kKeywordTextLength)) {
       token.type = kKeywordMap[keyword_index].kType;
 
       return true;
@@ -200,7 +256,6 @@ static bool IsBoolean(const char* const buffer) {
   if (0 == strncmp(buffer, "true", 4)) {
     token.type = kTokenBoolean;
     token.value.number = 1;
-    token.precedence = kPrecPrimary;
 
     return true;
   }
@@ -209,7 +264,6 @@ static bool IsBoolean(const char* const buffer) {
   if (0 == strncmp(buffer, "false", 5)) {
     token.type = kTokenBoolean;
     token.value.number = 0;
-    token.precedence = kPrecPrimary;
 
     return true;
   }
@@ -225,7 +279,8 @@ static bool IsNumber() {
   char* end = nullptr;
   static constexpr int kBase = 10;
 #endif
-  size_t k_number_length = 0;
+  size_t number_length = 0;
+
   if (!isdigit(program_buffer[program_buffer_index])) {
     return false;
   }
@@ -233,16 +288,40 @@ static bool IsNumber() {
   token.type = kTokenNumber;
   token.value.number =
       (int)strtol(&program_buffer[program_buffer_index], &end, kBase);
-  token.precedence = kPrecPrimary;
 
-  k_number_length = end - &program_buffer[program_buffer_index];
-  program_buffer_index += k_number_length;
+  number_length = end - &program_buffer[program_buffer_index];
+  program_buffer_index += number_length;
 
   return true;
 }
 
+void ExtractIdentifierName(char* const buffer) {
+  size_t token_value_text_length = strlen(token.value.text);
+
+  // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
+  strncpy(buffer, token.value.text, token_value_text_length);
+
+  buffer[token_value_text_length] = '\0';
+}
+
+void PeekNextToken() {
+  const size_t kSavedProgramBufferIndex = program_buffer_index;
+  Token saved_token = {};
+
+  // cppcheck-suppress redundantInitialization
+  saved_token = token;
+
+  ConsumeNextToken();
+
+  next_token = token;
+
+  program_buffer_index = kSavedProgramBufferIndex;
+  token = saved_token;
+}
+
 void ConsumeNextToken() {
   SkipWhitespace();
+
   token.start_of_token = program_buffer_index;
 
   if ('\0' == program_buffer[program_buffer_index]) {
@@ -273,8 +352,7 @@ void ConsumeNextToken() {
       return;
     }
 
-    token.type = kTokenId;
-    token.precedence = kPrecPrimary;
+    token.type = kTokenIdentifier;
 
     // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
     strncpy(token.value.text, buffer, strlen(buffer) + 1);
