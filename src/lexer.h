@@ -1,9 +1,31 @@
 #ifndef LEXER_H
 #define LEXER_H
+
+#ifdef __CC65__
+#include <stdbool.h>
+#endif
 #if defined(__CC65__) || defined(__linux__)
 #include <stddef.h>
 #elif __APPLE__
 #include <sys/_types/_size_t.h>
+#endif
+
+/// Checks if the current token is one of the argument tokens, and, if true,
+/// consumes the token and returns true.
+#define AcceptToken(token_type_list_length, ...) \
+  (AcceptTokenImplementation(token_type_list_length, __VA_ARGS__))
+
+/// Checks if the current token is one of the argument tokens, and, if true,
+/// consumes the token and returns true.
+/// If false, an error is emitted.
+#define ExpectToken(token_type_list_length, ...)    \
+  (AcceptToken(token_type_list_length, __VA_ARGS__) \
+       ? true                                       \
+       : (puts("Error: Unexpected token."), false))
+
+#ifdef __clang__
+// NOLINTNEXTLINE(bugprone-reserved-identifier)
+#define __cdecl__
 #endif
 
 #ifdef __CC65__
@@ -15,12 +37,14 @@ static constexpr int kProgramBufferSize = 8192;
 
 typedef enum TokenType {
   kTokenEof,
-  kTokenId,
+  kTokenIdentifier,
   kTokenNumber,
   kTokenPlus,
   kTokenMinus,
   kTokenStar,
   kTokenSlash,
+  kTokenDot,
+  kTokenComma,
   kTokenColon,
   kTokenAssign,
   kTokenEquals,
@@ -39,43 +63,42 @@ typedef enum TokenType {
   kTokenFor,
   kTokenEndfor,
   kTokenPrint,
-  kTokenBoolean
+  kTokenLocal,
+  kTokenBoolean,
+  kTokenFunc,
+  kTokenEndfunc,
+  kTokenRet,
+  kTokenInt,
+  kTokenFloat,
+  kTokenStr,
+  kTokenBool
 } TokenType;
-
-typedef enum {
-  kPrecNone,
-  kPrecAssignment,  // =
-  kPrecOr,          // ||
-  kPrecAnd,         // &&
-  kPrecEquality,    // ==, !=
-  kPrecComparison,  // <, >, <=, >=
-  kPrecTerm,        // +, -
-  kPrecFactor,      // *, /
-  kPrecUnary,       // !, - (prefix)
-  kPrecCall,        // Function calls
-  kPrecPrimary      // Literals, variables, (expr)
-} Precedence;
 
 typedef struct Token {
   TokenType type;
-  union {
+  union value {
     int number;
     char text[kTokenTextBufferSize];
   } value;
   size_t start_of_token;
-  Precedence precedence;
 } Token;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern Token token;
-
+extern Token next_token;
 extern char program_buffer[];
 extern size_t program_buffer_index;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
-/**
- * Parse tokens.
- */
+bool __cdecl__ AcceptTokenImplementation(size_t token_type_list_length, ...);
+
+void ResetLexerState();
+
+void ExtractIdentifierName(char* buffer);
+
+/// Parse tokens.
 void ConsumeNextToken();
+
+void PeekNextToken();
 
 #endif  // LEXER_H

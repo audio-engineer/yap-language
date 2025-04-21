@@ -1,6 +1,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-void ParseProgram(void);
+void ResetParserState();
+
+void ParseProgram();
 
 #endif  // PARSER_H

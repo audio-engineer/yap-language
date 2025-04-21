@@ -22,24 +22,43 @@ typedef enum Opcode {
   kOpEquals,
   kOpNotEquals,
   kOpGreaterThan,
-  kOpGreaterOrEquals,
+  kOpGreaterThanOrEqualTo,
   kOpLessThan,
-  kOpLessOrEquals,
+  kOpLessThanOrEqualTo,
   kOpPrint,
   kOpJumpIfFalse,
   kOpJump,
-  kOpHalt
+  kOpHalt,
+  kOpStoreGlobal,
+  kOpLoadGlobal,
+  kOpStoreLocal,
+  kOpLoadLocal,
+  kOpDefineFunction,
+  kOpCallFunction,
+  kOpReturn,
+  kOpPushCallFrame,
+  kOpPopCallFrame,
 } Opcode;
 
 typedef enum ConstantType {
-  kTypeNumber,
-  kTypeString,
-  kTypeBoolean
+  kConstantTypeNumber,
+  kConstantTypeString,
+  kConstantTypeBoolean,
+  kConstantTypeFunction
 } ConstantType;
+
+typedef enum VariableType {
+  kVariableTypeInt,
+  kVariableTypeStr,
+  kVariableTypeBool,
+  kVariableTypeFloat
+} VariableType;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern unsigned char instructions[];
-extern size_t instruction_index;
+extern size_t global_variable_index;
+extern size_t instruction_address;
+extern size_t constants_index;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 void ResetInterpreterState();
