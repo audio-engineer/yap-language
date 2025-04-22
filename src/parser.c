@@ -750,6 +750,7 @@ static void ParseWhileStatement() {
 
   // loop_start marks the jump location for the condition
   size_t loop_start = instruction_index;
+
   ParseExpression();
 
   if (kTokenRightParenthesis != token.type) {
@@ -760,7 +761,7 @@ static void ParseWhileStatement() {
   ConsumeNextToken();
 
   EmitByte(kOpJumpIfFalse);
-  size_t leave_loop_index = instruction_index;
+  size_t leave_loop = instruction_index;
   EmitByte(0);  // placeholder
 
   while (token.type != kTokenEndwhile && token.type != kTokenEof) {
@@ -770,7 +771,7 @@ static void ParseWhileStatement() {
   EmitByte(kOpJump);
   EmitByte(loop_start);
 
-  instructions[leave_loop_index] = instruction_index;
+  instructions[leave_loop] = instruction_index;
 
   if (token.type != kTokenEndwhile) {
     TokenTypeAssertionError("endwhile", token.type);
@@ -793,15 +794,71 @@ static void ParseWhileStatement() {
   }
   ConsumeNextToken();
 
-  // ParseStatement(); // Still requires variables
+  // Initializer
+  // ParseStatement(); // i: int, assuming variable are implemented
+  ConsumeNextToken();
 
-  if (kTokenRightParenthesis != token.type) {
-    TokenTypeAssertionError(")", token.type);
+  if (kTokenSemicolon != token.type) {
+    TokenTypeAssertionError(";", token.type);
+
+    return;
+  }
+
+  size_t condition_start = instruction_index;
+
+  // Condition
+  ParseExpression(); // example: i < 10
+  ConsumeNextToken();
+
+  if (kTokenSemicolon != token.type) {
+    TokenTypeAssertionError(";", token.type);
 
     return;
   }
   ConsumeNextToken();
-} */
+
+  EmitByte(kOpJumpIfFalse);
+  size_t loop_leave = instruction_index;
+  EmitByte(0);
+
+  // Increment
+  size_t increment_start = instruction_index;
+
+  ParseExpression();  // i = i + 1, assuming variable are implemented
+
+  size_t increment_end = instruction_index;
+
+  if (token.type != kTokenRightParenthesis) {
+    TokenTypeAssertionError(")", token.type);
+    return;
+  }
+  ConsumeNextToken();
+}
+
+  // loop body
+  size_t body_start = instruction_index;
+
+  while (token.type != kTokenEndfor && token.type != kTokenEof) {
+    ParseStatement(); // print("Hello, World!")
+  }
+
+  // Increment after body
+  for (size_t i = increment_start; i < increment_end; i++) {
+    EmitByte(instructions[i]);
+  }
+
+  EmitByte(kOpJump);
+  EmitByte(condition_start);
+
+  // IfFalse jump
+  instructions[loop_leave] = instruction_index;
+
+  if (token.type != kTokenEndfor) {
+    TokenTypeAssertionError("endfor", token.type);
+  } else {
+    ConsumeNextToken();
+  }
+}*/
 
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParseStatement() {
