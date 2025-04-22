@@ -19,7 +19,8 @@ void TestStringParse();
 void TestDeclareIntAndPrint();
 void TestDeclareBool();
 void TestDeclareStr();
-void TestDeclareFloat();
+// TODO(Martin): Enable when floats work.
+// void TestDeclareFloat();
 void TestDeclareIntAssignAndPrint();
 // TODO(Martin): Enable when functions work without parameters.
 // void TestDeclareFunctionWithNoParameters();

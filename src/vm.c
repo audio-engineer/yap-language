@@ -316,7 +316,7 @@ void RunVm() {
         if (0 == stack_value_one.as.number) {
           puts("Error: Division by zero.");
 
-          break;
+          return;
         }
 
         result.as.number =
@@ -368,10 +368,10 @@ void RunVm() {
         StackValue stack_value_two = {};
         StackValue result = {};
 
-        // cppcheck-suppress redundantInitialization
+        // cppcheck-suppress-begin redundantInitialization
         stack_value_one = Pop();
-        // cppcheck-suppress redundantInitialization
         stack_value_two = Pop();
+        // cppcheck-suppress-end redundantInitialization
 
         result.as.number =
             stack_value_two.as.number > stack_value_one.as.number;

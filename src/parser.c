@@ -43,7 +43,7 @@ static void ParseExpression();
 
 static void ParseArithmeticExpression();
 
-static void ParseIdentifierStatement();
+static void ParseIdentifierStatement(const char* identifier_name);
 
 static void ParseFunctionDefinition(const char* identifier_name,
                                     VariableType return_type);
@@ -177,25 +177,18 @@ static void ParseOperator(const TokenType operation) {
   }
 }
 
-static void ParseNumber() {
-  const int kNumber = token.value.number;
-  const size_t kIndex = AddNumberConstant(kNumber, kConstantTypeNumber);
+static void ParseNumber(const int number) {
+  const size_t kIndex = AddNumberConstant(number, kConstantTypeNumber);
 
   EmitByte(kOpConstant);
   EmitByte(kIndex);
 }
 
-static void ParseBoolean() {
-  size_t index = 0;
-
-  if (0 == token.value.number) {
-    index = AddNumberConstant(0, kConstantTypeBoolean);
-  } else {
-    index = AddNumberConstant(1, kConstantTypeBoolean);
-  }
+static void ParseBoolean(const int boolean_value) {
+  const size_t kIndex = AddNumberConstant(boolean_value, kConstantTypeBoolean);
 
   EmitByte(kOpConstant);
-  EmitByte(index);
+  EmitByte(kIndex);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -259,8 +252,8 @@ static void ParseIdentifier(const char* const identifier_name) {
   }
 }
 
-static void ParseString() {
-  const size_t kStringIndex = AddStringConstant(token.value.text);
+static void ParseString(const char* const string) {
+  const size_t kStringIndex = AddStringConstant(string);
 
   EmitByte(kOpConstant);
   EmitByte(kStringIndex);
@@ -268,20 +261,33 @@ static void ParseString() {
 
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParseFactor() {
+  Token saved_token = {};
+
+  // cppcheck-suppress redundantInitialization
+  saved_token = token;
+
   if (AcceptToken(1, kTokenIdentifier)) {
-    ParseIdentifier(token.value.text);
+    ParseIdentifier(saved_token.value.text);
+
+    return;
   }
 
   if (AcceptToken(1, kTokenNumber)) {
-    ParseNumber();
+    ParseNumber(saved_token.value.number);
+
+    return;
   }
 
   if (AcceptToken(1, kTokenBoolean)) {
-    ParseBoolean();
+    ParseBoolean(saved_token.value.number);
+
+    return;
   }
 
   if (AcceptToken(1, kTokenString)) {
-    ParseString();
+    ParseString(saved_token.value.text);
+
+    return;
   }
 
   if (AcceptToken(1, kTokenLeftParenthesis)) {
@@ -347,6 +353,7 @@ static void ParseRelationalExpression() {
   }
 }
 
+// TODO(Martin): Implement logical expressions.
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParseLogicalExpression() { ParseRelationalExpression(); }
 
@@ -355,10 +362,6 @@ static void ParseExpression() { ParseLogicalExpression(); }
 
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParsePrintStatement() {
-  if (!ExpectToken(1, kTokenPrint)) {
-    return;
-  }
-
   if (!ExpectToken(1, kTokenLeftParenthesis)) {
     return;
   }
@@ -375,10 +378,7 @@ static void ParsePrintStatement() {
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParseIfStatement() {
   size_t if_jump_address = 0;
-
-  if (!ExpectToken(1, kTokenIf)) {
-    return;
-  }
+  size_t else_jump_address = 0;
 
   if (!ExpectToken(1, kTokenLeftParenthesis)) {
     return;
@@ -401,27 +401,29 @@ static void ParseIfStatement() {
     ParseStatement();
   }
 
-  if (kTokenElse == token.type) {
-    size_t else_jump_address = 0;
-
-    EmitByte(kOpJump);
-
-    else_jump_address = instruction_address;
-
-    EmitByte(0);
-
+  if (kTokenElse != token.type) {
     instructions[if_jump_address] = instruction_address;
 
-    ConsumeNextToken();
+    ExpectToken(1, kTokenEndif);
 
-    while (kTokenEndif != token.type && kTokenEof != token.type) {
-      ParseStatement();
-    }
-
-    instructions[else_jump_address] = instruction_address;
-  } else {
-    instructions[if_jump_address] = instruction_address;
+    return;
   }
+
+  EmitByte(kOpJump);
+
+  else_jump_address = instruction_address;
+
+  EmitByte(0);
+
+  instructions[if_jump_address] = instruction_address;
+
+  ConsumeNextToken();
+
+  while (kTokenEndif != token.type && kTokenEof != token.type) {
+    ParseStatement();
+  }
+
+  instructions[else_jump_address] = instruction_address;
 
   ExpectToken(1, kTokenEndif);
 }
@@ -489,10 +491,6 @@ static void ParseVariableDeclaration(const char* const identifier_name) {
   // bool is_local = false;
   VariableType variable_type = 0;
 
-  if (!ExpectToken(1, kTokenColon)) {
-    return;
-  }
-
   variable_type = TokenTypeToVariableType(token.type);
 
   if (!ExpectToken(4, kTokenInt, kTokenStr, kTokenBool, kTokenFloat)) {
@@ -515,10 +513,6 @@ static void ParseVariableDeclaration(const char* const identifier_name) {
 }
 
 static void ParseVariableAssignment(const char* const identifier_name) {
-  if (!ExpectToken(1, kTokenAssign)) {
-    return;
-  }
-
   ParseExpression();
   SetVariable(identifier_name);
 }
@@ -580,8 +574,8 @@ static void ParseFunctionDefinition(const char* const identifier_name,
     }
   }
 
-  // In case the parameter list was empty, we need to accept a right parenthesis
-  // here.
+  // In case the parameter list was empty, we need to accept the right
+  // parenthesis here.
   AcceptToken(1, kTokenRightParenthesis);
 
   jump_address = instruction_address;
@@ -625,79 +619,64 @@ static void ParseFunctionDefinition(const char* const identifier_name,
 }
 
 static void ParseReturnStatement() {
-  if (!ExpectToken(1, kTokenRet)) {
-    return;
-  }
-
   ParseExpression();
   EmitByte(kOpReturn);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-static void ParseIdentifierStatement() {
-  char identifier_name[kIdentifierNameLength];
+static void ParseIdentifierStatement(const char* const identifier_name) {
+  if (AcceptToken(1, kTokenColon)) {
+    ParseVariableDeclaration(identifier_name);
 
-  ExtractIdentifierName(identifier_name);
-
-  if (!ExpectToken(1, kTokenIdentifier)) {
     return;
   }
 
-  switch (token.type) {
-    case kTokenColon:
-      ParseVariableDeclaration(identifier_name);
+  if (AcceptToken(1, kTokenAssign)) {
+    ParseVariableAssignment(identifier_name);
 
-      break;
-    case kTokenAssign:
-      ParseVariableAssignment(identifier_name);
-
-      break;
-    default:
-      puts("Error: Unexpected token after identifier.");
-
-      token.type = kTokenEof;
+    return;
   }
+
+  puts("Error: Unexpected token after identifier.");
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParseStatement() {
-  switch (token.type) {
-    case kTokenPrint:
-      ParsePrintStatement();
+  static char identifier_name[kIdentifierNameLength];
 
-      break;
-    case kTokenIf:
-      ParseIfStatement();
+  if (AcceptToken(1, kTokenPrint)) {
+    ParsePrintStatement();
 
-      break;
-    case kTokenIdentifier: {
-      PeekNextToken();
-
-      if (kTokenColon == next_token.type ||
-          kTokenLeftParenthesis == next_token.type ||
-          kTokenAssign == next_token.type) {
-        ParseIdentifierStatement();
-
-        break;
-      }
-
-      ParseExpression();
-
-      break;
-    }
-    case kTokenLocal:
-      // ParseVariableDeclaration(name);
-
-      break;
-    case kTokenRet:
-      ParseReturnStatement();
-
-      break;
-    default:
-      printf("Error: Unregistered statement '%s'.\n", token.value.text);
-
-      token.type = kTokenEof;
+    return;
   }
+
+  if (AcceptToken(1, kTokenIf)) {
+    ParseIfStatement();
+
+    return;
+  }
+
+  if (AcceptToken(1, kTokenRet)) {
+    ParseReturnStatement();
+
+    return;
+  }
+
+  ExtractIdentifierName(identifier_name);
+
+  if (AcceptToken(1, kTokenIdentifier)) {
+    if (kTokenColon == token.type || kTokenAssign == token.type) {
+      ParseIdentifierStatement(identifier_name);
+
+      return;
+    }
+
+    ParseExpression();
+  }
+
+  printf("Error: Unregistered statement '%s'.\n", identifier_name);
+
+  token.type = kTokenEof;
 }
 
 void ParseProgram() {
