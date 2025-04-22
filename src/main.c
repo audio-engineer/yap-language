@@ -56,8 +56,9 @@ static void DirectMode() {
   line_buffer_length = strlen(line_buffer);
 
   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-  memcpy(&program_buffer[program_buffer_index], line_buffer,
-         line_buffer_length);
+  strncpy(&program_buffer[program_buffer_index], line_buffer,
+          line_buffer_length);
+  program_buffer[line_buffer_length] = '\0';
 
   CompileProgram();
   RunVm();
@@ -88,10 +89,12 @@ static void ProgramMode() {
   }
 
   // NOLINTNEXTLINE(clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling)
-  memcpy(&program_buffer[program_buffer_index], line_buffer,
-         line_buffer_length);
+  strncpy(&program_buffer[program_buffer_index], line_buffer,
+          line_buffer_length);
 
   program_buffer_index += line_buffer_length;
+
+  program_buffer[program_buffer_index] = '\0';
 }
 
 int main() {

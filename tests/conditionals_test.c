@@ -1,3 +1,5 @@
+#include "conditionals_test.h"
+
 #ifdef __linux__
 #include <stddef.h>
 #elif __APPLE__
@@ -6,7 +8,6 @@
 #include <unity.h>
 #include <vm.h>
 
-#include "conditionals_test.h"
 #include "global.h"
 
 void TestIfTrueExecutesBlock() {

@@ -80,12 +80,10 @@ typedef struct Token {
     int number;
     char text[kTokenTextBufferSize];
   } value;
-  size_t start_of_token;
 } Token;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern Token token;
-extern Token next_token;
 extern char program_buffer[];
 extern size_t program_buffer_index;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
@@ -98,7 +96,5 @@ void ExtractIdentifierName(char* buffer);
 
 /// Parse tokens.
 void ConsumeNextToken();
-
-void PeekNextToken();
 
 #endif  // LEXER_H

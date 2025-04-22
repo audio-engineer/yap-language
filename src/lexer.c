@@ -14,7 +14,6 @@
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 Token token;
-Token next_token;
 char program_buffer[kProgramBufferSize];
 size_t program_buffer_index = 0;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
@@ -279,6 +278,7 @@ static bool IsNumber() {
   char* end = nullptr;
   static constexpr int kBase = 10;
 #endif
+
   size_t number_length = 0;
 
   if (!isdigit(program_buffer[program_buffer_index])) {
@@ -304,25 +304,8 @@ void ExtractIdentifierName(char* const buffer) {
   buffer[token_value_text_length] = '\0';
 }
 
-void PeekNextToken() {
-  const size_t kSavedProgramBufferIndex = program_buffer_index;
-  Token saved_token = {};
-
-  // cppcheck-suppress redundantInitialization
-  saved_token = token;
-
-  ConsumeNextToken();
-
-  next_token = token;
-
-  program_buffer_index = kSavedProgramBufferIndex;
-  token = saved_token;
-}
-
 void ConsumeNextToken() {
   SkipWhitespace();
-
-  token.start_of_token = program_buffer_index;
 
   if ('\0' == program_buffer[program_buffer_index]) {
     token.type = kTokenEof;
@@ -364,7 +347,7 @@ void ConsumeNextToken() {
     return;
   }
 
-  printf("Error: Unexpected token '%c'.\n",
+  printf("Error: Unregistered token '%c'.\n",
          program_buffer[program_buffer_index]);
 
   token.type = kTokenEof;
