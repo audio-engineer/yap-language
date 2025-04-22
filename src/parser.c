@@ -801,7 +801,6 @@ static void ParseWhileStatement() {
     return;
   }
   ConsumeNextToken();
-}
 } */
 
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -846,9 +845,12 @@ static void ParseStatement() {
     case kTokenFor:
       ParseForStatement();
 
+    case kTokenBreak:
+    // TODO Implement break functionality
+
       break;
-  default:
-    printf("Error: Unregistered statement '%s'.\n", token.value.text);
+    default:
+      printf("Error: Unregistered statement '%s'.\n", token.value.text);
   return; */
 
   printf("Error: Unregistered statement '%s'.\n", identifier_name);
