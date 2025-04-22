@@ -735,6 +735,9 @@ static void ParseIdentifierStatement(const char* const identifier_name) {
  * Grammar: while(condition) statement* endwhile
  */
 // NOLINTNEXTLINE(misc-no-recursion) //
+/* The while-loop does not support controlled exit condtions
+ * since there is no variable support yet. */
+static void ParseWhileStatement() {
 /*static void ParseWhileStatement() {
   ConsumeNextToken();
 
@@ -758,7 +761,7 @@ static void ParseIdentifierStatement(const char* const identifier_name) {
 
   EmitByte(kOpJumpIfFalse);
   size_t leave_loop_index = instruction_index;
-  EmitByte(0);
+  EmitByte(0);  // placeholder
 
   while (token.type != kTokenEndwhile && token.type != kTokenEof) {
     ParseStatement();
@@ -774,6 +777,31 @@ static void ParseIdentifierStatement(const char* const identifier_name) {
     return;
   }
   ConsumeNextToken();
+}
+
+/**
+ * Grammar: for(initializer; condition; increment) statement* endfor
+ */
+// NOLINTNEXTLINE(misc-no-recursion) //
+/*static void ParseForStatement() {
+  ConsumeNextToken();
+
+  if (kTokenLeftParenthesis != token.type) {
+    TokenTypeAssertionError("(", token.type);
+
+    return;
+  }
+  ConsumeNextToken();
+
+  // ParseStatement(); // Still requires variables
+
+  if (kTokenRightParenthesis != token.type) {
+    TokenTypeAssertionError(")", token.type);
+
+    return;
+  }
+  ConsumeNextToken();
+}
 } */
 
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -828,7 +856,7 @@ static void ParseStatement() {
   token.type = kTokenEof;
 }
 
-void ParseProgram() {
+  void ParseProgram() {
 #if defined(__CC65__) && !defined(NDEBUG)
   StartTimerA();
 #endif

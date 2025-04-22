@@ -4,6 +4,7 @@
 
 #include "conditionals_test.h"
 #include "lexer_test.h"
+#include "loops_test.h"
 #include "parser_test.h"
 
 void setUp() {}
@@ -83,6 +84,9 @@ int main() {
   RUN_TEST(TestIfGreaterThanComparison);
   RUN_TEST(TestIfLessThanComparison);
   RUN_TEST(TestElse);
+
+  // Loops
+  RUN_TEST(TestIfFalseConditionRuns);
 
   return UNITY_END();
 }

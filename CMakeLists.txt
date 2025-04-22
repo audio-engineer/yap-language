@@ -47,6 +47,8 @@ add_executable(${TEST_EXECUTABLE_NAME}
         tests/lexer_test.c
         tests/main.c
         tests/parser_test.c
+        tests/loops_test.c
+        tests/loops_test.h
 )
 
 target_include_directories(${TEST_EXECUTABLE_NAME} PUBLIC tests)
