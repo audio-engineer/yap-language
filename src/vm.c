@@ -27,14 +27,23 @@ static constexpr int kFunctionPoolSize = 16;
 #endif
 
 /// Pushes a value onto the stack.
-/// Is defined as a macro since cc65 doesn't support passing structs to
-/// functions by value for regular functions.
-#define Push(value) (stack[stack_index++] = (value))
+/// Defined as a macro since cc65 doesn't support passing structs to functions
+/// by value for regular functions.
+#define Push(value)                   \
+  do {                                \
+    if (kStackSize <= stack_index) {  \
+      puts("Error: Stack overflow."); \
+    } else {                          \
+      stack[stack_index++] = (value); \
+    }                                 \
+  } while (0)
 
 /// Pops a value from the stack.
-/// Is defined as a macro since cc65 doesn't support passing structs to
-/// functions by value for regular functions.
-#define Pop() (stack[--stack_index])
+/// Defined as a macro since cc65 doesn't support passing structs to functions
+/// by value for regular functions.
+#define Pop()                                                             \
+  (0 == stack_index ? (puts("Error: Stack underflow."), kEmptyStackValue) \
+                    : stack[--stack_index])
 
 typedef struct Constants {
   const void* pointer[kConstantsSize];
@@ -49,13 +58,20 @@ typedef struct Function {
 } Function;
 
 typedef struct StackValue {
-  VariableType type;
   union as {
     int number;
     char* string;
     Function* function;
   } as;
+  VariableType type;
+#ifdef __CC65__
+  unsigned char padding;  ///< Used to add 1 byte padding to the struct, so that
+                          ///< the whole struct has a size of exactly 4 bytes.
+                          ///< See https://cc65.github.io/doc/cc65.html#s4
+#endif
 } StackValue;
+
+static const StackValue kEmptyStackValue = {};
 
 typedef struct CallFrame {
   size_t return_address[kCallFrameTableSize];
