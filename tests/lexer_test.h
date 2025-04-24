@@ -16,6 +16,7 @@ void TestGreaterThanOrEqualTo();
 void TestLessThanOrEqualTo();
 void TestBooleanLiteral();
 void TestIf();
+void TestNestedIf();
 void TestFor();
 void TestNot();
 void TestIntVariableDeclaration();

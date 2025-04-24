@@ -30,6 +30,7 @@ int main() {
   RUN_TEST(TestLessThanOrEqualTo);
   RUN_TEST(TestBooleanLiteral);
   RUN_TEST(TestIf);
+  RUN_TEST(TestNestedIf);
   RUN_TEST(TestFor);
   RUN_TEST(TestNot);
   RUN_TEST(TestIntVariableDeclaration);

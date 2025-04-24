@@ -16,11 +16,36 @@
 #include "vm.h"
 
 #ifdef __CC65__
-enum { kIdentifierNameLength = 16, kSymbolTableSize = 16 };
+enum {
+  kIdentifierNameLength = 16,
+  kSymbolTableSize = 16,
+  kJumpPatchStackSize = 4
+};
 #else
 static constexpr int kIdentifierNameLength = 16;
 static constexpr int kSymbolTableSize = 16;
+static constexpr int kJumpPatchStackSize = 4;
 #endif
+
+/// Pushes a value onto the jump patch stack.
+/// Defined as a macro since cc65 doesn't support passing structs to functions
+/// by value for regular functions.
+#define PushJumpPatch(jump_patch)                                \
+  do {                                                           \
+    if (kJumpPatchStackSize <= jump_patch_stack_index) {         \
+      puts("Error: Too many nested conditionals.");              \
+    } else {                                                     \
+      jump_patch_stack[jump_patch_stack_index++] = (jump_patch); \
+    }                                                            \
+  } while (0)
+
+/// Pops a value from the jump patch stack.
+/// Defined as a macro since cc65 doesn't support passing structs to functions
+/// by value for regular functions.
+#define PopJumpPatch()                                                        \
+  (0 == jump_patch_stack_index                                                \
+       ? (puts("Error: Jump patch stack underflow."), kEmptyPendingJumpPatch) \
+       : jump_patch_stack[--jump_patch_stack_index])
 
 typedef struct SymbolTableEntry {
   char name[kIdentifierNameLength];
@@ -28,8 +53,18 @@ typedef struct SymbolTableEntry {
   size_t index;
 } SymbolTableEntry;
 
+typedef struct PendingJumpPatch {
+  size_t condition_patch_slot;
+  size_t exit_patch_slot;
+} PendingJumpPatch;
+
+static const PendingJumpPatch kEmptyPendingJumpPatch = {};
+
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 static SymbolTableEntry symbol_table[kSymbolTableSize];
+
+static PendingJumpPatch jump_patch_stack[kJumpPatchStackSize];
+static size_t jump_patch_stack_index = 0;
 
 static char local_names[kSymbolTableSize][kIdentifierNameLength];
 static size_t local_count = 0;
@@ -377,8 +412,9 @@ static void ParsePrintStatement() {
 
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParseIfStatement() {
-  size_t if_jump_address = 0;
-  size_t else_jump_address = 0;
+  size_t condition_patch_slot = 0;
+  size_t exit_patch_slot = 0;
+  PendingJumpPatch pending_jump_patch = {};
 
   if (!ExpectToken(1, kTokenLeftParenthesis)) {
     return;
@@ -392,38 +428,50 @@ static void ParseIfStatement() {
 
   EmitByte(kOpJumpIfFalse);
 
-  if_jump_address = instruction_address;
+  condition_patch_slot = instruction_address;
 
   EmitByte(0);
+
+  pending_jump_patch.condition_patch_slot = condition_patch_slot;
+
+  PushJumpPatch(pending_jump_patch);
 
   while (kTokenEndif != token.type && kTokenElse != token.type &&
          kTokenEof != token.type) {
     ParseStatement();
   }
 
+  // No else
   if (kTokenElse != token.type) {
-    instructions[if_jump_address] = instruction_address;
+    pending_jump_patch = PopJumpPatch();
+
+    instructions[pending_jump_patch.condition_patch_slot] = instruction_address;
 
     ExpectToken(1, kTokenEndif);
 
     return;
   }
 
+  // If-else
   EmitByte(kOpJump);
 
-  else_jump_address = instruction_address;
+  exit_patch_slot = instruction_address;
 
   EmitByte(0);
 
-  instructions[if_jump_address] = instruction_address;
+  pending_jump_patch = PopJumpPatch();
 
+  instructions[pending_jump_patch.condition_patch_slot] = instruction_address;
+  pending_jump_patch.exit_patch_slot = exit_patch_slot;
+
+  // Parse else body.
   ConsumeNextToken();
 
   while (kTokenEndif != token.type && kTokenEof != token.type) {
     ParseStatement();
   }
 
-  instructions[else_jump_address] = instruction_address;
+  instructions[pending_jump_patch.exit_patch_slot] = instruction_address;
 
   ExpectToken(1, kTokenEndif);
 }
