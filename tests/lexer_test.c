@@ -189,6 +189,76 @@ void TestIf() {
   TEST_ASSERT_EQUAL_INT(kTokenEndif, token.type);
 }
 
+void TestNestedIf() {
+  FillProgramBuffer(
+      "if(true)\nif(false)\nprint(\"foo\")\nelse\nprint(\"bar\")"
+      "\nendif\nendif");
+
+  ConsumeNextToken();  // if
+  TEST_ASSERT_EQUAL_INT(kTokenIf, token.type);
+
+  ConsumeNextToken();  // (
+  TEST_ASSERT_EQUAL_INT(kTokenLeftParenthesis, token.type);
+
+  ConsumeNextToken();  // true
+  TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
+  TEST_ASSERT_EQUAL_INT(1, token.value.number);
+
+  ConsumeNextToken();  // )
+  TEST_ASSERT_EQUAL_INT(kTokenRightParenthesis, token.type);
+
+  ConsumeNextToken();  // if
+  TEST_ASSERT_EQUAL_INT(kTokenIf, token.type);
+
+  ConsumeNextToken();  // (
+  TEST_ASSERT_EQUAL_INT(kTokenLeftParenthesis, token.type);
+
+  ConsumeNextToken();  // false
+  TEST_ASSERT_EQUAL_INT(kTokenBoolean, token.type);
+  TEST_ASSERT_EQUAL_INT(0, token.value.number);
+
+  ConsumeNextToken();  // )
+  TEST_ASSERT_EQUAL_INT(kTokenRightParenthesis, token.type);
+
+  ConsumeNextToken();  // print
+  TEST_ASSERT_EQUAL_INT(kTokenPrint, token.type);
+
+  ConsumeNextToken();  // (
+  TEST_ASSERT_EQUAL_INT(kTokenLeftParenthesis, token.type);
+
+  ConsumeNextToken();  // foo
+  TEST_ASSERT_EQUAL_INT(kTokenString, token.type);
+  TEST_ASSERT_EQUAL_STRING("foo", token.value.text);
+
+  ConsumeNextToken();  // )
+  TEST_ASSERT_EQUAL_INT(kTokenRightParenthesis, token.type);
+
+  ConsumeNextToken();  // else
+  TEST_ASSERT_EQUAL_INT(kTokenElse, token.type);
+
+  ConsumeNextToken();  // print
+  TEST_ASSERT_EQUAL_INT(kTokenPrint, token.type);
+
+  ConsumeNextToken();  // (
+  TEST_ASSERT_EQUAL_INT(kTokenLeftParenthesis, token.type);
+
+  ConsumeNextToken();  // bar
+  TEST_ASSERT_EQUAL_INT(kTokenString, token.type);
+  TEST_ASSERT_EQUAL_STRING("bar", token.value.text);
+
+  ConsumeNextToken();  // )
+  TEST_ASSERT_EQUAL_INT(kTokenRightParenthesis, token.type);
+
+  ConsumeNextToken();  // endif
+  TEST_ASSERT_EQUAL_INT(kTokenEndif, token.type);
+
+  ConsumeNextToken();  // endif
+  TEST_ASSERT_EQUAL_INT(kTokenEndif, token.type);
+
+  ConsumeNextToken();  // EOF
+  TEST_ASSERT_EQUAL_INT(kTokenEof, token.type);
+}
+
 void TestFor() {
   FillProgramBuffer("for(true)print(\"Hello, world!\")endfor");
 

@@ -422,10 +422,13 @@ static void ParsePrintStatement() {
   EmitByte(kOpPrint);
 }
 
+// clang-format off
+#pragma static-locals(push, off)
+// clang-format on
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParseIfStatement() {
-  size_t if_jump_address = 0;
-  size_t else_jump_address = 0;
+  size_t condition_patch_slot = 0;
+  size_t exit_patch_slot = 0;
 
   if (!ExpectToken(1, kTokenLeftParenthesis)) {
     return;
@@ -439,7 +442,7 @@ static void ParseIfStatement() {
 
   EmitByte(kOpJumpIfFalse);
 
-  if_jump_address = instruction_address;
+  condition_patch_slot = instruction_address;
 
   EmitByte(0);
 
@@ -449,7 +452,7 @@ static void ParseIfStatement() {
   }
 
   if (kTokenElse != token.type) {
-    instructions[if_jump_address] = instruction_address;
+    instructions[condition_patch_slot] = instruction_address;
 
     ExpectToken(1, kTokenEndif);
 
@@ -458,11 +461,11 @@ static void ParseIfStatement() {
 
   EmitByte(kOpJump);
 
-  else_jump_address = instruction_address;
+  exit_patch_slot = instruction_address;
 
   EmitByte(0);
 
-  instructions[if_jump_address] = instruction_address;
+  instructions[condition_patch_slot] = instruction_address;
 
   ConsumeNextToken();
 
@@ -470,10 +473,13 @@ static void ParseIfStatement() {
     ParseStatement();
   }
 
-  instructions[else_jump_address] = instruction_address;
+  instructions[exit_patch_slot] = instruction_address;
 
   ExpectToken(1, kTokenEndif);
 }
+// clang-format off
+#pragma static-locals(pop)
+// clang-format on
 
 static void DefineVariable(const char* const identifier_name,
                            const VariableType type, const bool is_local) {
@@ -727,7 +733,7 @@ static void ParseIdentifierStatement(const char* const identifier_name) {
 
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParseStatement() {
-  static char identifier_name[kIdentifierNameLength];
+  char identifier_name[kIdentifierNameLength];
 
   if (AcceptToken(1, kTokenPrint)) {
     ParsePrintStatement();
