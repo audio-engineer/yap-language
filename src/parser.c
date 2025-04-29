@@ -28,6 +28,21 @@ typedef struct SymbolTableEntry {
   size_t index;
 } SymbolTableEntry;
 
+const char* VariableTypeToString(VariableType type) {
+  switch (type) {
+    case kVariableTypeInt:
+      return "int";
+    case kVariableTypeStr:
+      return "str";
+    case kVariableTypeBool:
+      return "bool";
+    case kVariableTypeFloat:
+      return "float";
+    default:
+      return "unknown";
+  }
+}
+
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 static SymbolTableEntry symbol_table[kSymbolTableSize];
 
@@ -39,9 +54,9 @@ static bool is_function_scope = false;
 
 static void ParseStatement();
 
-static void ParseExpression();
+static VariableType ParseExpression();
 
-static void ParseArithmeticExpression();
+static VariableType ParseArithmeticExpression();
 
 static void ParseIdentifierStatement(const char* identifier_name);
 
@@ -70,8 +85,7 @@ static VariableType TokenTypeToVariableType(const TokenType token_type) {
       return kVariableTypeFloat;
     default:
       puts("Error: Unknown variable type.");
-
-      return kVariableTypeInt;
+      return kVariableTypeUnknown;
   }
 }
 
@@ -177,18 +191,20 @@ static void ParseOperator(const TokenType operation) {
   }
 }
 
-static void ParseNumber(const int number) {
+static VariableType ParseNumber(const int number) {
   const size_t kIndex = AddNumberConstant(number, kConstantTypeNumber);
 
   EmitByte(kOpConstant);
   EmitByte(kIndex);
+  return kVariableTypeInt;
 }
 
-static void ParseBoolean(const int boolean_value) {
+static VariableType ParseBoolean(const int boolean_value) {
   const size_t kIndex = AddNumberConstant(boolean_value, kConstantTypeBoolean);
 
   EmitByte(kOpConstant);
   EmitByte(kIndex);
+  return kVariableTypeBool;
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -218,147 +234,178 @@ static void ParseFunctionCall() {
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-static void ParseIdentifier(const char* const identifier_name) {
+static VariableType ParseIdentifier(const char* const identifier_name) {
   size_t index = 0;
+  VariableType var_type = kVariableTypeUnknown;
 
   index = FindLocalSymbol(identifier_name);
 
   if ((size_t)-1 != index) {
     EmitByte(kOpLoadLocal);
     EmitByte((unsigned char)index);
+    ++instruction_address;
+    var_type = kVariableTypeInt;
+  } else {
+    index = FindGlobalSymbol(identifier_name);
+    if (index == (size_t)-1) {
+      printf("Error: Undefined symbol '%s'.\n", identifier_name);
+      return kVariableTypeUnknown;
+    }
 
-    // TODO(Martin): Implement type checker.
+    EmitByte(kOpLoadGlobal);
+    EmitByte((unsigned char)index);
     ++instruction_address;
 
-    return;
+    var_type = symbol_table[index].type;
   }
-
-  index = FindGlobalSymbol(identifier_name);
-
-  if ((size_t)-1 == index) {
-    printf("Error: Undefined symbol '%s'.\n", identifier_name);
-
-    return;
-  }
-
-  EmitByte(kOpLoadGlobal);
-  EmitByte((unsigned char)index);
-
-  // TODO(Martin): Implement type checker.
-  ++instruction_address;
 
   if (AcceptToken(1, kTokenLeftParenthesis)) {
     ParseFunctionCall();
+    return kVariableTypeUnknown;
   }
+  return var_type;
 }
 
-static void ParseString(const char* const string) {
+static VariableType ParseString(const char* const string) {
   const size_t kStringIndex = AddStringConstant(string);
 
   EmitByte(kOpConstant);
   EmitByte(kStringIndex);
+  return kVariableTypeStr;
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-static void ParseFactor() {
+static VariableType ParseFactor() {
   Token saved_token = {};
 
   // cppcheck-suppress redundantInitialization
   saved_token = token;
 
   if (AcceptToken(1, kTokenIdentifier)) {
-    ParseIdentifier(saved_token.value.text);
-
-    return;
+    return ParseIdentifier(saved_token.value.text);
   }
 
   if (AcceptToken(1, kTokenNumber)) {
-    ParseNumber(saved_token.value.number);
-
-    return;
+    return ParseNumber(saved_token.value.number);
   }
 
   if (AcceptToken(1, kTokenBoolean)) {
-    ParseBoolean(saved_token.value.number);
-
-    return;
+    return ParseBoolean(saved_token.value.number);
   }
 
   if (AcceptToken(1, kTokenString)) {
-    ParseString(saved_token.value.text);
-
-    return;
+    return ParseString(saved_token.value.text);
   }
 
   if (AcceptToken(1, kTokenLeftParenthesis)) {
-    ParseArithmeticExpression();
+    VariableType type = ParseExpression();
     ExpectToken(1, kTokenRightParenthesis);
+    return type;
   }
+  puts("Error: Invalid expression.");
+  token.type = kTokenEof;
+  return kVariableTypeInt;
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-static void ParseTerm() {
-  ParseFactor();
+static VariableType ParseTerm() {
+  VariableType left_type = ParseFactor();
+  VariableType right_type = kVariableTypeUnknown;
 
   while (kTokenStar == token.type || kTokenSlash == token.type) {
     const TokenType kOperator = token.type;
 
     ConsumeNextToken();
-    ParseFactor();
+    right_type = ParseFactor();
+    if (left_type != kVariableTypeInt || right_type != kVariableTypeInt) {
+      puts("Type error: Arithmetic operands must be integers.");
+      token.type = kTokenEof;
+    }
+
     ParseOperator(kOperator);
+    left_type = kVariableTypeInt;
   }
+  return left_type;
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-static void ParseArithmeticExpression() {
+static VariableType ParseArithmeticExpression() {
+  VariableType left_type = kVariableTypeUnknown;
+  VariableType right_type = kVariableTypeUnknown;
+
   if (kTokenPlus == token.type || kTokenMinus == token.type) {
     const TokenType kOperator = token.type;
 
     ConsumeNextToken();
+    left_type = ParseTerm();
+    if (left_type != kVariableTypeInt) {
+      puts("Type error: Unary operator requires integer.");
+      token.type = kTokenEof;
+    }
+
     ParseOperator(kOperator);
+    return kVariableTypeInt;
   }
 
-  ParseTerm();
+  left_type = ParseTerm();
 
   while (kTokenPlus == token.type || kTokenMinus == token.type) {
     const TokenType kOperator = token.type;
 
     ConsumeNextToken();
-    ParseTerm();
+    right_type = ParseTerm();
+    if (left_type != kVariableTypeInt || right_type != kVariableTypeInt) {
+      puts("Type error: Arithmetic operands must be integers.");
+      token.type = kTokenEof;
+    }
+
     ParseOperator(kOperator);
+    left_type = kVariableTypeInt;
   }
+  return left_type;
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-static void ParseRelationalExpression() {
+static VariableType ParseRelationalExpression() {
+  VariableType left_type = kVariableTypeUnknown;
+  VariableType right_type = kVariableTypeUnknown;
   if (AcceptToken(1, kTokenNot)) {
-    const TokenType kOperator = token.type;
-
-    ParseArithmeticExpression();
-    ParseOperator(kOperator);
-
-    return;
+    VariableType operand_type = ParseArithmeticExpression();
+    if (operand_type != kVariableTypeBool) {
+      puts("Type error: 'not' requires boolean.");
+      token.type = kTokenEof;
+    }
+    ParseOperator(kTokenNot);
+    return kVariableTypeBool;
   }
 
-  ParseArithmeticExpression();
+  left_type = ParseArithmeticExpression();
 
   if (kTokenEquals == token.type || kTokenNotEquals == token.type ||
       kTokenGreaterThan == token.type || kTokenGreaterOrEquals == token.type ||
       kTokenLessThan == token.type || kTokenLessOrEquals == token.type) {
     const TokenType kOperator = token.type;
-
     ConsumeNextToken();
-    ParseArithmeticExpression();
+    right_type = ParseArithmeticExpression();
+
+    if (left_type != kVariableTypeInt || right_type != kVariableTypeInt) {
+      puts("Type error: Comparison requires integers.");
+      token.type = kTokenEof;
+    }
     ParseOperator(kOperator);
+    return kVariableTypeBool;
   }
+  return left_type;
 }
 
 // TODO(Martin): Implement logical expressions.
 // NOLINTNEXTLINE(misc-no-recursion)
-static void ParseLogicalExpression() { ParseRelationalExpression(); }
+static VariableType ParseLogicalExpression() {
+  return ParseRelationalExpression();
+}
 
 // NOLINTNEXTLINE(misc-no-recursion)
-static void ParseExpression() { ParseLogicalExpression(); }
+static VariableType ParseExpression() { return ParseLogicalExpression(); }
 
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParsePrintStatement() {
@@ -490,6 +537,7 @@ static void SetVariable(const char* const identifier_name) {
 static void ParseVariableDeclaration(const char* const identifier_name) {
   // bool is_local = false;
   VariableType variable_type = 0;
+  VariableType expr_type = kVariableTypeUnknown;
 
   variable_type = TokenTypeToVariableType(token.type);
 
@@ -507,13 +555,50 @@ static void ParseVariableDeclaration(const char* const identifier_name) {
     return;
   }
 
-  ParseExpression();
+  expr_type = ParseExpression();
+
+  if (expr_type != variable_type) {
+    printf("Type error: Cannot assign %s to variable of type %s.\n",
+           VariableTypeToString(expr_type),
+           VariableTypeToString(variable_type));
+    token.type = kTokenEof;
+    return;
+  }
 
   DefineVariable(identifier_name, variable_type, false);
 }
 
 static void ParseVariableAssignment(const char* const identifier_name) {
-  ParseExpression();
+  VariableType expected_type = kVariableTypeUnknown;
+  VariableType expr_type = kVariableTypeUnknown;
+  size_t index = (size_t)-1;
+  bool is_local = false;
+
+  // Check for local variable
+  index = FindLocalSymbol(identifier_name);
+  if (index != (size_t)-1) {
+    expected_type = kVariableTypeInt;
+    // NOLINTNEXTLINE(clang-analyzer-deadcode.DeadStores)
+    is_local = true;
+  } else {
+    index = FindGlobalSymbol(identifier_name);
+    if (index == (size_t)-1) {
+      printf("Error: Undefined variable '%s'.\n", identifier_name);
+      token.type = kTokenEof;
+      return;
+    }
+    expected_type = symbol_table[index].type;
+  }
+  expr_type = ParseExpression();
+
+  if (expr_type != expected_type) {
+    printf("Type error: Cannot assign %s to variable '%s' of type %s.\n",
+           VariableTypeToString(expr_type), identifier_name,
+           VariableTypeToString(expected_type));
+    token.type = kTokenEof;
+    return;
+  }
+
   SetVariable(identifier_name);
 }
 
