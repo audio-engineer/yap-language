@@ -48,11 +48,11 @@ typedef enum ConstantType {
 } ConstantType;
 
 typedef enum VariableType {
-  kVariableTypeUnknown,
   kVariableTypeInt,
   kVariableTypeStr,
   kVariableTypeBool,
-  kVariableTypeFloat
+  kVariableTypeFloat,
+  kVariableTypeUnknown
 } VariableType;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
