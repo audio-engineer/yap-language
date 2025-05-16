@@ -14,7 +14,9 @@ enum {
   kStringPoolSize = 512,
   kNumberPoolSize = 64,
   kStackSize = 16,
-  kFunctionPoolSize = 16
+  kFunctionPoolSize = 16,
+  kArrayPoolSize = 16,
+  kArrayElementsMax = 16
 };
 #else
 static constexpr int kGlobalVariablesSize = 64;
@@ -24,6 +26,9 @@ static constexpr int kStringPoolSize = 512;
 static constexpr int kNumberPoolSize = 64;
 static constexpr int kStackSize = 16;
 static constexpr int kFunctionPoolSize = 16;
+static constexpr int kArrayPoolSize = 16;
+static constexpr int kArrayElementsMax = 16;
+
 #endif
 
 /// Pushes a value onto the stack.
@@ -57,11 +62,17 @@ typedef struct Function {
   VariableType return_type;
 } Function;
 
+typedef struct Array {
+  int elements[kArrayElementsMax];
+  size_t count;
+} Array;
+
 typedef struct StackValue {
   union as {
     int number;
     char* string;
     Function* function;
+    Array* array;
   } as;
   VariableType type;
 #ifdef __CC65__
@@ -103,6 +114,10 @@ static size_t function_pool_index = 0;
 
 static StackValue stack[kStackSize];
 static size_t stack_index = 0;
+
+static Array array_pool[kArrayPoolSize];
+static size_t array_pool_index = 0;
+
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 void ResetInterpreterState() {
@@ -613,6 +628,100 @@ void RunVm() {
         break;
       }
       case kOpPopCallFrame: {
+        break;
+      }
+      case kOpMakeArray: {
+        const size_t kElementCount = instructions[instruction_address++];
+        StackValue val;
+        size_t element = 0;
+        Array* array_instance = &array_pool[array_pool_index++];
+        StackValue array_value = {0};
+        array_value.type = kVariableTypeArray;
+        array_value.as.array = array_instance;
+
+        if (kElementCount > kArrayElementsMax) {
+          puts("Error: Array too large.");
+          return;
+        }
+
+        if (array_pool_index >= kArrayPoolSize) {
+          puts("Error: Too many arrays.");
+          return;
+        }
+
+        for (element = 0; element < kElementCount; ++element) {
+          val = Pop();
+          if (val.type != kVariableTypeInt) {
+            puts("Error: Only integer are supported in arrays.");
+            return;
+          }
+          array_instance->elements[kElementCount - element - 1] = val.as.number;
+        }
+        array_instance->count = kElementCount;
+
+        Push(array_value);
+        break;
+      }
+      case kOpIndexArray: {
+        StackValue index;
+        StackValue array;
+        StackValue result;
+
+        index = Pop();
+        array = Pop();
+        if (array.type != kVariableTypeArray) {
+          puts("Runtime error: Cannot index non-array.");
+          return;
+        }
+
+        if (index.type != kVariableTypeInt) {
+          puts("Runtime error: Array index must be integer.");
+          return;
+        }
+
+        if (index.as.number < 0 ||
+            (size_t)index.as.number >= array.as.array->count) {
+          puts("Runtime error: Array index out of bounds.");
+          return;
+        }
+        result.type = kVariableTypeInt;
+        result.as.number = array.as.array->elements[index.as.number];
+
+        Push(result);
+        break;
+      }
+      case kOpStoreElement: {
+        const size_t kArrayIndex = instructions[instruction_address++];
+        StackValue value;
+        StackValue index;
+        StackValue array;
+
+        value = Pop();
+        index = Pop();
+        array = global_variables[kArrayIndex];
+
+        if (array.type != kVariableTypeArray || !array.as.array) {
+          puts("Runtime error: This is not an array.");
+          return;
+        }
+
+        if (index.type != kVariableTypeInt) {
+          puts("Runtime error: Array index must be integer.");
+          return;
+        }
+
+        if (value.type != kVariableTypeInt) {
+          puts("Runtime error: Only integers can be stored in arrays.");
+          return;
+        }
+
+        if (index.as.number < 0 ||
+            (size_t)index.as.number >= array.as.array->count) {
+          puts("Runtime error: Array index out of bounds.");
+          return;
+        }
+
+        array.as.array->elements[index.as.number] = value.as.number;
         break;
       }
       case kOpHalt: {
