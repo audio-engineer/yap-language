@@ -13,6 +13,7 @@ void TestAddArithmetic();
 void TestSubtractArithmetic();
 void TestMultiplyArithmetic();
 void TestDivideArithmetic();
+void TestModuloArithmetic();
 void TestTrueBoolean();
 void TestFalseBoolean();
 void TestStringParse();

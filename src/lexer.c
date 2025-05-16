@@ -181,6 +181,10 @@ static bool IsCharacter() {
       token.type = kTokenStar;
 
       break;
+    case '%':
+      token.type = kTokenPercent;
+
+      break;
     case '/':
       token.type = kTokenSlash;
 
