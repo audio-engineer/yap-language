@@ -28,7 +28,7 @@ static const KeywordEntry kKeywordMap[] = {
     {"endif", kTokenEndif}, {"for", kTokenFor},   {"endfor", kTokenEndfor},
     {"local", kTokenLocal}, {"func", kTokenFunc}, {"endfunc", kTokenEndfunc},
     {"ret", kTokenRet},     {"int", kTokenInt},   {"float", kTokenFloat},
-    {"str", kTokenStr},     {"bool", kTokenBool}};
+    {"str", kTokenStr},     {"bool", kTokenBool}, {"array", kTokenArray}};
 
 #ifdef __CC65__
 static const size_t kKeywordCount = sizeof(kKeywordMap) / sizeof(KeywordEntry);
@@ -223,6 +223,14 @@ static bool IsCharacter() {
       break;
     case '.':
       token.type = kTokenDot;
+
+      break;
+    case '[':
+      token.type = kTokenLeftBracket;
+
+      break;
+    case ']':
+      token.type = kTokenRightBracket;
 
       break;
     default:

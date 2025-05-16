@@ -83,6 +83,8 @@ static VariableType TokenTypeToVariableType(const TokenType token_type) {
       return kVariableTypeBool;
     case kTokenFloat:
       return kVariableTypeFloat;
+    case kTokenArray:
+      return kVariableTypeArray;
     default:
       puts("Error: Unknown variable type.");
       return kVariableTypeUnknown;
@@ -257,6 +259,35 @@ static VariableType ParseIdentifier(const char* const identifier_name) {
     ++instruction_address;
 
     var_type = symbol_table[index].type;
+  }
+  if (AcceptToken(1, kTokenLeftBracket)) {
+    VariableType index_type = ParseExpression();
+
+    if (index_type != kVariableTypeInt) {
+      puts("Type error: Array index must be integer.");
+      token.type = kTokenEof;
+      return kVariableTypeUnknown;
+    }
+
+    if (!ExpectToken(1, kTokenRightBracket)) {
+      return kVariableTypeUnknown;
+    }
+
+    if (AcceptToken(1, kTokenAssign)) {
+      VariableType value_type = ParseExpression();
+
+      if (value_type != kVariableTypeInt) {
+        puts("Type error: Only integer values can be assigned to arrays.");
+        token.type = kTokenEof;
+        return kVariableTypeUnknown;
+      }
+
+      EmitByte(kOpStoreElement);
+      EmitByte((unsigned char)index);
+      return kVariableTypeInt;
+    }
+    EmitByte(kOpIndexArray);
+    return kVariableTypeInt;
   }
 
   if (AcceptToken(1, kTokenLeftParenthesis)) {
@@ -509,6 +540,50 @@ static void DefineVariable(const char* const identifier_name,
   EmitByte(type);
 }
 
+static VariableType ParseArrayLiteral() {
+  size_t element_count = 0;
+  int value = 0;
+  size_t index = 0;
+  if (!ExpectToken(1, kTokenLeftBracket)) {
+    return kVariableTypeUnknown;
+  }
+
+  while (token.type != kTokenRightBracket && token.type != kTokenEof) {
+    if (token.type != kTokenNumber) {
+      puts("Error: Only integers are supported in arrays.");
+      token.type = kTokenEof;
+      return kVariableTypeUnknown;
+    }
+
+    value = token.value.number;
+    ConsumeNextToken();
+
+    index = AddNumberConstant(value, kConstantTypeNumber);
+    EmitByte(kOpConstant);
+    EmitByte(index);
+    ++element_count;
+
+    if (token.type == kTokenComma) {
+      ConsumeNextToken();
+    } else if (token.type != kTokenRightBracket) {
+      puts("Error: Expected ',' or ']'");
+      token.type = kTokenEof;
+      return kVariableTypeUnknown;
+    }
+  }
+
+  if (!ExpectToken(1, kTokenRightBracket)) {
+    puts("Error: Missing closing bracket for array.");
+    token.type = kTokenEof;
+    return kVariableTypeUnknown;
+  }
+
+  EmitByte(kOpMakeArray);
+  EmitByte(element_count);
+
+  return kVariableTypeArray;
+}
+
 static void SetVariable(const char* const identifier_name) {
   size_t index = 0;
 
@@ -547,7 +622,8 @@ static void ParseVariableDeclaration(const char* const identifier_name) {
 
   variable_type = TokenTypeToVariableType(token.type);
 
-  if (!ExpectToken(4, kTokenInt, kTokenStr, kTokenBool, kTokenFloat)) {
+  if (!ExpectToken(5, kTokenInt, kTokenStr, kTokenBool, kTokenFloat,
+                   kTokenArray)) {
     return;
   }
 
@@ -560,8 +636,11 @@ static void ParseVariableDeclaration(const char* const identifier_name) {
 
     return;
   }
-
-  expr_type = ParseExpression();
+  if (variable_type == kVariableTypeArray) {
+    expr_type = ParseArrayLiteral();
+  } else {
+    expr_type = ParseExpression();
+  }
 
   if (expr_type != variable_type) {
     printf("Type error: Cannot assign %s to variable of type %s.\n",
@@ -716,9 +795,56 @@ static void ParseReturnStatement() {
 
 // NOLINTNEXTLINE(misc-no-recursion)
 static void ParseIdentifierStatement(const char* const identifier_name) {
+  VariableType value_type = kVariableTypeUnknown;
   if (AcceptToken(1, kTokenColon)) {
     ParseVariableDeclaration(identifier_name);
 
+    return;
+  }
+
+  if (AcceptToken(1, kTokenLeftBracket)) {
+    VariableType index_type = ParseExpression();
+    size_t index = 0;
+
+    if (index_type != kVariableTypeInt) {
+      puts("Type error: Array index must be integer.");
+      token.type = kTokenEof;
+      return;
+    }
+
+    if (!ExpectToken(1, kTokenRightBracket)) {
+      return;
+    }
+
+    if (!ExpectToken(1, kTokenAssign)) {
+      return;
+    }
+
+    value_type = ParseExpression();
+
+    if (value_type != kVariableTypeInt) {
+      puts("Type error: Only integer values can be stored in arrays.");
+      token.type = kTokenEof;
+      return;
+    }
+
+    index = FindLocalSymbol(identifier_name);
+    if (index != (size_t)-1) {
+      EmitByte(kOpLoadLocal);
+      EmitByte((unsigned char)index);
+    } else {
+      index = FindGlobalSymbol(identifier_name);
+      if (index == (size_t)-1) {
+        printf("Error: Undefined variable '%s'.\n", identifier_name);
+        token.type = kTokenEof;
+        return;
+      }
+
+      EmitByte(kOpLoadGlobal);
+      EmitByte((unsigned char)index);
+    }
+
+    EmitByte(kOpStoreElement);
     return;
   }
 
@@ -756,6 +882,12 @@ static void ParseStatement() {
   ExtractIdentifierName(identifier_name);
 
   if (AcceptToken(1, kTokenIdentifier)) {
+    if (token.type == kTokenLeftBracket) {
+      VariableType result_type = ParseIdentifier(identifier_name);
+      (void)result_type;
+      return;
+    }
+
     if (kTokenColon == token.type || kTokenAssign == token.type) {
       ParseIdentifierStatement(identifier_name);
 
