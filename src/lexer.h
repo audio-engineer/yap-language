@@ -71,7 +71,10 @@ typedef enum TokenType {
   kTokenInt,
   kTokenFloat,
   kTokenStr,
-  kTokenBool
+  kTokenBool,
+  kTokenLeftBracket,
+  kTokenRightBracket,
+  kTokenArray
 } TokenType;
 
 typedef struct Token {

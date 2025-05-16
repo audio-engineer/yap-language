@@ -38,13 +38,17 @@ typedef enum Opcode {
   kOpReturn,
   kOpPushCallFrame,
   kOpPopCallFrame,
+  kOpMakeArray,
+  kOpIndexArray,
+  kOpStoreElement,
 } Opcode;
 
 typedef enum ConstantType {
   kConstantTypeNumber,
   kConstantTypeString,
   kConstantTypeBoolean,
-  kConstantTypeFunction
+  kConstantTypeFunction,
+  kConstantTypeArray
 } ConstantType;
 
 typedef enum VariableType {
@@ -52,7 +56,8 @@ typedef enum VariableType {
   kVariableTypeStr,
   kVariableTypeBool,
   kVariableTypeFloat,
-  kVariableTypeUnknown
+  kVariableTypeUnknown,
+  kVariableTypeArray
 } VariableType;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
