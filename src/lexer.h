@@ -43,6 +43,7 @@ typedef enum TokenType {
   kTokenMinus,
   kTokenStar,
   kTokenSlash,
+  kTokenPercent,
   kTokenDot,
   kTokenComma,
   kTokenColon,
