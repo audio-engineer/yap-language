@@ -58,6 +58,8 @@ void TestMultiplyArithmetic() {
 
 void TestDivideArithmetic() { TestBinaryOperator("print(10 / 5)", kOpDivide); }
 
+void TestModuloArithmetic() { TestBinaryOperator("print(10 % 5)", kOpModulo); }
+
 void TestLessThanCondition() {
   TestBinaryOperator("print(1 < 10)", kOpLessThan);
 }
