@@ -358,6 +358,30 @@ void RunVm() {
 
         break;
       }
+      case kOpModulo: {
+        StackValue stack_value_one = {};
+        StackValue stack_value_two = {};
+        StackValue result = {};
+
+        // cppcheck-suppress-begin redundantInitialization
+        stack_value_one = Pop();
+        stack_value_two = Pop();
+        // cppcheck-suppress-end redundantInitialization
+
+        if (0 == stack_value_one.as.number) {
+          puts("Error: Division by zero.");
+
+          return;
+        }
+
+        result.as.number =
+            stack_value_two.as.number % stack_value_one.as.number;
+        result.type = kConstantTypeNumber;
+
+        Push(result);
+
+        break;
+      }
       case kOpEquals: {
         StackValue stack_value_one = {};
         StackValue stack_value_two = {};

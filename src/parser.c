@@ -158,6 +158,10 @@ static void ParseOperator(const TokenType operation) {
       EmitByte(kOpMultiply);
 
       break;
+    case kTokenPercent:
+      EmitByte(kOpModulo);
+
+      break;
     case kTokenSlash:
       EmitByte(kOpDivide);
 
@@ -343,7 +347,8 @@ static VariableType ParseTerm() {
   VariableType left_type = ParseFactor();
   VariableType right_type = kVariableTypeUnknown;
 
-  while (kTokenStar == token.type || kTokenSlash == token.type) {
+  while (kTokenStar == token.type || kTokenSlash == token.type ||
+         kTokenPercent == token.type) {
     const TokenType kOperator = token.type;
 
     ConsumeNextToken();
