@@ -2,9 +2,9 @@
 #include <unity.h>
 #include <unity_internals.h>
 
-#include "conditionals_test.h"
 #include "lexer_test.h"
 #include "parser_test.h"
+#include "vm_test.h"
 
 void setUp() {}
 
@@ -79,7 +79,14 @@ int main() {
   RUN_TEST(TestUnregisteredStatement);
   RUN_TEST(TestMissingLeftParen);
 
-  // Conditionals
+  // vm tests
+  puts("");
+  puts("VM");
+  RUN_TEST(TestPlus);
+  RUN_TEST(TestMinusVM);
+  RUN_TEST(TestMultiply);
+  RUN_TEST(TestDivide);
+  RUN_TEST(TestModulo);
   RUN_TEST(TestIfTrueExecutesBlock);
   RUN_TEST(TestIfFalseSkipsBlock);
   RUN_TEST(TestIfGreaterThanComparison);
