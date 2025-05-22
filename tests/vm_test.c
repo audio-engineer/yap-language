@@ -1,4 +1,4 @@
-#include "conditionals_test.h"
+#include "vm_test.h"
 
 #ifdef __linux__
 #include <stddef.h>
@@ -8,7 +8,30 @@
 #include <unity.h>
 #include <vm.h>
 
+// NOLINTNEXTLINE(bugprone-suspicious-include,-warnings-as-errors)
+#include <vm.c>
+
 #include "global.h"
+
+void TestVMArithmetic(const int expected, const char* code) {
+  FillProgramBufferAndParse(code);
+  RunVm();
+
+  TEST_ASSERT_EQUAL(expected, stack[stack_index].as.number);
+
+  ResetInterpreterState();
+}
+
+void TestPlus() { TestVMArithmetic(4, "x:int=2+2"); }
+
+void TestMinusVM() { TestVMArithmetic(1, "x:int=3-2"); }
+
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers,-warnings-as-errors)
+void TestMultiply() { TestVMArithmetic(6, "x:int=2*3"); }
+
+void TestDivide() { TestVMArithmetic(2, "x:int=4/2"); }
+
+void TestModulo() { TestVMArithmetic(1, "x:int=5%2"); }
 
 void TestIfTrueExecutesBlock() {
   FillProgramBufferAndParse("if (1) print(\"yes\") endif");

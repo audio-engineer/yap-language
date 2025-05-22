@@ -42,7 +42,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${LIBRARY_NAME})
 
 # Test executable
 add_executable(${TEST_EXECUTABLE_NAME}
-        tests/conditionals_test.c
+        tests/vm_test.c
         tests/global.c
         tests/lexer_test.c
         tests/main.c
