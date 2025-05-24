@@ -92,6 +92,7 @@ int main() {
   RUN_TEST(TestIfGreaterThanComparison);
   RUN_TEST(TestIfLessThanComparison);
   RUN_TEST(TestElse);
+  RUN_TEST(TestNestedConditionals);
 
   return UNITY_END();
 }

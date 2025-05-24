@@ -11,5 +11,6 @@ void TestIfFalseSkipsBlock();
 void TestIfGreaterThanComparison();
 void TestIfLessThanComparison();
 void TestElse();
+void TestNestedConditionals();
 
 #endif  // CONDITIONALS_TEST_H

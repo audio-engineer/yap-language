@@ -22,6 +22,15 @@ void TestVMArithmetic(const int expected, const char* code) {
   ResetInterpreterState();
 }
 
+void TestConditionalResult(const int expected, const char* const code) {
+  FillProgramBufferAndParse(code);
+  RunVm();
+
+  TEST_ASSERT_EQUAL(expected, global_variables[0].as.number);
+
+  ResetInterpreterState();
+}
+
 void TestPlus() { TestVMArithmetic(4, "x:int=2+2"); }
 
 void TestMinusVM() { TestVMArithmetic(1, "x:int=3-2"); }
@@ -34,70 +43,68 @@ void TestDivide() { TestVMArithmetic(2, "x:int=4/2"); }
 void TestModulo() { TestVMArithmetic(1, "x:int=5%2"); }
 
 void TestIfTrueExecutesBlock() {
-  FillProgramBufferAndParse("if (1) print(\"yes\") endif");
-
-  bool saw_jump_if_false = false;
-  bool saw_print = false;
-  bool saw_halt = false;
-
-  for (size_t i = 0; i < kInstructionsSize; ++i) {
-    if (instructions[i] == kOpJumpIfFalse) {
-      saw_jump_if_false = true;
-    }
-
-    if (instructions[i] == kOpPrint) {
-      saw_print = true;
-    }
-
-    if (instructions[i] == kOpHalt) {
-      saw_halt = true;
-    }
-  }
-
-  TEST_ASSERT_TRUE_MESSAGE(saw_jump_if_false,
-                           "Missing kOpJumpIfFalse for 'if' check");
-  TEST_ASSERT_TRUE_MESSAGE(saw_print, "Missing kOpPrint inside 'if' block");
-  TEST_ASSERT_TRUE_MESSAGE(saw_halt, "Missing kOpHalt at end");
-
-  RunVm();
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers,-warnings-as-errors)
+  TestConditionalResult(42,
+                        "x: int = 0"
+                        "if(true)"
+                        "  x = 42"
+                        "else"
+                        "  x = 99"
+                        "endif"
+                        "print(x)");
 }
 
 void TestIfFalseSkipsBlock() {
-  FillProgramBufferAndParse("if (0) print(\"no\") endif");
-
-  bool saw_print = false;
-  bool saw_jump = true;
-
-  for (size_t i = 0; i < kInstructionsSize; ++i) {
-    if (instructions[i] == kOpPrint) {
-      saw_print = true;
-    }
-
-    if (instructions[i] == kOpJump) {
-      saw_jump = false;
-    }
-  }
-
-  TEST_ASSERT_TRUE_MESSAGE(saw_print, "Missing kOpPrint inside 'if' block");
-  TEST_ASSERT_TRUE_MESSAGE(saw_jump, "kOpJump should not exist in bytecode");
-
-  RunVm();
+  TestConditionalResult(0,
+                        "x: int = 0\n"
+                        "if(false)\n"
+                        "  x = 123\n"
+                        "endif\n"
+                        "print(x)");
 }
 
 void TestIfGreaterThanComparison() {
-  FillProgramBufferAndParse("if (5 > 2) print(\"greater\") endif");
-
-  RunVm();
+  TestConditionalResult(1,
+                        "x: int = 0\n"
+                        "if(5 > 2)\n"
+                        "  x = 1\n"
+                        "endif\n"
+                        "print(x)");
 }
 
 void TestIfLessThanComparison() {
-  FillProgramBufferAndParse("if (1 < 0) print(\"should not appear\") endif");
-
-  RunVm();
+  TestConditionalResult(0,
+                        "x: int = 0\n"
+                        "if(1 < 0)\n"
+                        "  x = 1\n"
+                        "endif\n"
+                        "print(x)");
 }
 
 void TestElse() {
-  FillProgramBufferAndParse("if(3>2) print(\"foo\") else print(\"bar\") endif");
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers,-warnings-as-errors)
+  TestConditionalResult(99,
+                        "x: int = 0\n"
+                        "if(false)\n"
+                        "  x = 42\n"
+                        "else\n"
+                        "  x = 99\n"
+                        "endif\n"
+                        "print(x)");
+}
 
-  RunVm();
+void TestNestedConditionals() {
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers,-warnings-as-errors)
+  TestConditionalResult(222,
+                        "x: int = 0\n"
+                        "if(true)\n"
+                        "  if(false)\n"
+                        "    x = 111\n"
+                        "  else\n"
+                        "    x = 222\n"
+                        "  endif\n"
+                        "else\n"
+                        "  x = 999\n"
+                        "endif\n"
+                        "print(x)");
 }
