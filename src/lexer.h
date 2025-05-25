@@ -65,7 +65,7 @@ typedef enum TokenType {
   kTokenFor,
   kTokenEndfor,
   kTokenWhile,
-  KTokenEndwhile,
+  kTokenEndwhile,
   kTokenPrint,
   kTokenLocal,
   kTokenBoolean,
