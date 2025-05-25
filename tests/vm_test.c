@@ -101,3 +101,92 @@ void TestElse() {
 
   RunVm();
 }
+
+// Loops testing
+
+/*void TestForLoopExecutesThreeTimes() {
+  int print_occurences = 0;
+
+  FillProgramBufferAndParse(
+      "for(i: int = 0; i < 3; i = i + 1)\n"
+      "  print(i)\n"
+      "endfor");
+
+  bool saw_jump = false;
+  bool saw_jump_if_false = false;
+
+  for (size_t i = 0; i < kInstructionsSize; ++i) {
+    if (instructions[i] == kOpPrint) {
+      print_occurences++;
+    }
+    if (instructions[i] == kOpJump) {
+      saw_jump = true;
+    }
+    if (instructions[i] == kOpJumpIfFalse) {
+      saw_jump_if_false = true;
+    }
+  }
+
+  TEST_ASSERT_TRUE_MESSAGE(saw_jump, "Missing kOpJump for loop iteration");
+  TEST_ASSERT_TRUE_MESSAGE(saw_jump_if_false,
+                           "Missing kOpJumpIfFalse for loop condition");
+  TEST_ASSERT_EQUAL_INT_MESSAGE(3, print_occurences, "Loop did not print 3 times");
+
+  RunVm();
+}
+*/
+void TestWhileLoopExecutesThreeTimes() {
+  FillProgramBufferAndParse(
+      "i: int = 0\n"
+      "while(i < 3)\n"
+      "  print(i)\n"
+      "  i = i + 1\n"
+      "endwhile");
+
+  int print_count = 0;
+  bool saw_jump_if_false = false;
+  bool saw_jump = false;
+
+  for (size_t i = 0; i < kInstructionsSize; ++i) {
+    if (instructions[i] == kOpPrint) {
+      print_count++;
+    }
+    if (instructions[i] == kOpJumpIfFalse) {
+      saw_jump_if_false = true;
+    }
+    if (instructions[i] == kOpJump) {
+      saw_jump = true;
+    }
+  }
+
+  TEST_ASSERT_TRUE_MESSAGE(saw_jump_if_false, "Missing kOpJumpIfFalse for while");
+  TEST_ASSERT_TRUE_MESSAGE(saw_jump, "Missing kOpJump to repeat loop");
+  TEST_ASSERT_EQUAL_INT_MESSAGE(1, print_count,
+                                "Expected 1 print instruction in bytecode");
+
+  RunVm();
+}
+
+void TestNestedWhileLoops() {
+  // Expected output should be:
+  // 0
+  // 1
+  // 0
+  // 1
+
+  FillProgramBufferAndParse(
+      "i: int = 0\n"
+      "j: int = 0\n"
+      "while(i < 2)\n"
+      "  j = 0\n"
+      "  while(j < 2)\n"
+      "    print(j)\n"
+      "    j = j + 1\n"
+      "  endwhile\n"
+      "  i = i + 1\n"
+      "endwhile");
+
+  RunVm();
+}
+
+

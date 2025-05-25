@@ -93,5 +93,9 @@ int main() {
   RUN_TEST(TestIfLessThanComparison);
   RUN_TEST(TestElse);
 
+  // Loops
+  //RUN_TEST(TestForLoopExecutesThreeTimes);
+  RUN_TEST(TestWhileLoopExecutesThreeTimes);
+  RUN_TEST(TestNestedWhileLoops);
   return UNITY_END();
 }

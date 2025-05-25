@@ -12,4 +12,11 @@ void TestIfGreaterThanComparison();
 void TestIfLessThanComparison();
 void TestElse();
 
+// Loops
+//void TestForLoopExecutesThreeTimes();
+
+void TestWhileLoopExecutesThreeTimes();
+void TestNestedWhileLoops();
+
+
 #endif  // CONDITIONALS_TEST_H
