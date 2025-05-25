@@ -957,6 +957,46 @@ static void ParseForStatement() {
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
+static void ParseWhileStatement() {
+  size_t loop_start_index = 0;
+  size_t pending_loop_exit_slot = 0;
+
+  // Mark where the loop starts
+  loop_start_index = instruction_address;
+
+  // Parse condition
+  // condition example: i < 3
+  if (!ExpectToken(1, kTokenLeftParenthesis)) {
+    return;
+  }
+
+  ParseExpression();
+
+  if (!ExpectToken(1, kTokenRightParenthesis)) {
+    return;
+  }
+
+  // Emit conditional jump to exit if false
+  EmitByte(kOpJumpIfFalse);
+  pending_loop_exit_slot = instruction_address;
+  EmitByte(0);  // placeholder to be patched
+
+  // Parse loop body
+  while (token.type != kTokenEndwhile && token.type != kTokenEof) {
+    ParseStatement();
+  }
+
+  // Jump back to start of loop
+  EmitByte(kOpJump);
+  EmitByte(loop_start_index);
+
+  // Waiting for instruction jump to jump to loop exit
+  instructions[pending_loop_exit_slot] = instruction_address;
+
+  ExpectToken(1, kTokenEndwhile);
+}
+
+// NOLINTNEXTLINE(misc-no-recursion)
 static void ParseStatement() {
   char identifier_name[kIdentifierNameLength];
 
@@ -980,6 +1020,12 @@ static void ParseStatement() {
 
   if (AcceptToken(1, kTokenFor)) {
     ParseForStatement();
+
+    return;
+  }
+
+  if (AcceptToken(1, kTokenWhile)) {
+    ParseWhileStatement();
 
     return;
   }

@@ -29,7 +29,7 @@ static const KeywordEntry kKeywordMap[] = {
     {"local", kTokenLocal}, {"func", kTokenFunc}, {"endfunc", kTokenEndfunc},
     {"ret", kTokenRet},     {"int", kTokenInt},   {"float", kTokenFloat},
     {"str", kTokenStr},     {"bool", kTokenBool}, {"array", kTokenArray},
-    {"while", kTokenWhile}/*, {"endwhile", kTokenEndwhile}*/};
+    {"while", kTokenWhile}, {"endwhile", kTokenEndwhile}};
 
 #ifdef __CC65__
 static const size_t kKeywordCount = sizeof(kKeywordMap) / sizeof(KeywordEntry);
