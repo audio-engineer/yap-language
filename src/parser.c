@@ -863,6 +863,100 @@ static void ParseIdentifierStatement(const char* const identifier_name) {
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
+static void ParseForStatement() {
+  size_t pending_condition_slot = 0;
+  size_t loop_start_address = 0;
+  size_t loop_exit_address = 0;
+
+  if (!ExpectToken(1, kTokenLeftParenthesis)) {
+    return;
+  }
+
+  // Parse variable declaration
+  // initializer example: i: int = 0
+  char identifier_name[kIdentifierNameLength];
+  ExtractIdentifierName(identifier_name);
+
+  if (!ExpectToken(1, kTokenIdentifier)) {
+    return;
+  }
+
+  if (!ExpectToken(1, kTokenColon)) {
+    return;
+  }
+
+  ParseVariableDeclaration(identifier_name);
+
+  if (!ExpectToken(1, kTokenSemicolon)) {
+    puts("That's yap!: You're missing a semicolon after the initializer.");
+    return;
+  }
+
+  // Mark condition check address
+  loop_start_address = instruction_address;
+
+  // Parse loop
+  // condition example: i < 3
+  ParseExpression();
+
+  EmitByte(kOpJumpIfFalse);
+  pending_condition_slot = instruction_address;
+  EmitByte(0);
+
+  if (!ExpectToken(1, kTokenSemicolon)) {
+    puts("That's yap!: You're missing a semicolon after the condition.");
+    return;
+  }
+
+  // Store increment start location
+  size_t increment_start_address = instruction_address;
+
+  // Parse increment
+  // increment example: i = i + 1
+  ExtractIdentifierName(identifier_name);
+
+  if (!ExpectToken(1, kTokenIdentifier)) {
+    return;
+  }
+
+  if (!ExpectToken(1, kTokenAssign)) {
+    return;
+  }
+
+  ParseVariableAssignment(identifier_name);
+
+  if (!ExpectToken(1, kTokenRightParenthesis)) {
+    return;
+  }
+
+  // Jump from end of increment to body of loop
+  EmitByte(kOpJump);
+  loop_exit_address = instruction_address;
+  EmitByte(0);
+
+  // Loop increment jump target
+  EmitByte(kOpJump);
+  EmitByte(increment_start_address);
+
+  // Patch jump into loop body
+  instructions[loop_exit_address] = instruction_address;
+
+  // Parse loop body
+  while (token.type != kTokenEndfor && token.type != kTokenEof) {
+    ParseStatement();
+  }
+
+  // After body, jump back to condition
+  EmitByte(kOpJump);
+  EmitByte(loop_start_address);
+
+  // Pending false jump to exit loop
+  instructions[pending_condition_slot] = instruction_address;
+
+  ExpectToken(1, kTokenEndfor);
+}
+
+// NOLINTNEXTLINE(misc-no-recursion)
 static void ParseStatement() {
   char identifier_name[kIdentifierNameLength];
 
@@ -880,6 +974,12 @@ static void ParseStatement() {
 
   if (AcceptToken(1, kTokenRet)) {
     ParseReturnStatement();
+
+    return;
+  }
+
+  if (AcceptToken(1, kTokenFor)) {
+    ParseForStatement();
 
     return;
   }
