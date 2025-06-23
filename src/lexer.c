@@ -234,11 +234,11 @@ static bool IsCharacter() {
       token.type = kTokenDot;
 
       break;
-    case '[':
+    case '$':
       token.type = kTokenLeftBracket;
 
       break;
-    case ']':
+    case '&':
       token.type = kTokenRightBracket;
 
       break;

@@ -82,16 +82,40 @@ int main() {
   // vm tests
   puts("");
   puts("VM");
-  RUN_TEST(TestPlus);
-  RUN_TEST(TestMinusVM);
-  RUN_TEST(TestMultiply);
-  RUN_TEST(TestDivide);
-  RUN_TEST(TestModulo);
+  RUN_TEST(TestPlusOperator);
+  RUN_TEST(TestMinusOperator);
+  RUN_TEST(TestMultiplyOperator);
+  RUN_TEST(TestDivideOperator);
+  RUN_TEST(TestModuloOperator);
+  RUN_TEST(TestEqualOperator);
+  RUN_TEST(TestNotEqualOperator);
+  RUN_TEST(TestGreaterThanOperator);
+  RUN_TEST(TestGreaterOrEqualsOperator);
+  RUN_TEST(TestLessThanOperator);
+  RUN_TEST(TestLessOrEqualsOperator);
+  // UNIMPLEMENTED
+  // RUN_TEST(TestOrOperator);
+  // RUN_TEST(TestAndOperator);
   RUN_TEST(TestIfTrueExecutesBlock);
   RUN_TEST(TestIfFalseSkipsBlock);
   RUN_TEST(TestIfGreaterThanComparison);
   RUN_TEST(TestIfLessThanComparison);
   RUN_TEST(TestElse);
+  RUN_TEST(TestNestedConditionals);
+
+  // Acceptance testing
+  puts("");
+  puts("Acceptance testing");
+  RUN_TEST(Example1);
+  RUN_TEST(Example2);
+  RUN_TEST(Example3);
+  RUN_TEST(Example4);
+  // RUN_TEST(Example5);
+  RUN_TEST(Example6);
+  // RUN_TEST(Example7);
+  // RUN_TEST(Example8);
+  // RUN_TEST(Example9);
+  // RUN_TEST(Example10);
 
   // Loops
   //RUN_TEST(TestForLoopExecutesThreeTimes);
