@@ -32,10 +32,9 @@ void Example9();
 void Example10();
 
 // Loops
-//void TestForLoopExecutesThreeTimes();
+// void TestForLoopExecutesThreeTimes();
 
 void TestWhileLoopExecutesThreeTimes();
 void TestNestedWhileLoops();
-
 
 #endif  // CONDITIONALS_TEST_H

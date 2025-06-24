@@ -358,7 +358,8 @@ void Example10() {
   TEST_ASSERT_TRUE_MESSAGE(saw_jump, "Missing kOpJump for loop iteration");
   TEST_ASSERT_TRUE_MESSAGE(saw_jump_if_false,
                            "Missing kOpJumpIfFalse for loop condition");
-  TEST_ASSERT_EQUAL_INT_MESSAGE(3, print_occurences, "Loop did not print 3 times");
+  TEST_ASSERT_EQUAL_INT_MESSAGE(3, print_occurences, "Loop did not print 3
+times");
 
   RunVm();
 }
@@ -387,7 +388,8 @@ void TestWhileLoopExecutesThreeTimes() {
     }
   }
 
-  TEST_ASSERT_TRUE_MESSAGE(saw_jump_if_false, "Missing kOpJumpIfFalse for while");
+  TEST_ASSERT_TRUE_MESSAGE(saw_jump_if_false,
+                           "Missing kOpJumpIfFalse for while");
   TEST_ASSERT_TRUE_MESSAGE(saw_jump, "Missing kOpJump to repeat loop");
   TEST_ASSERT_EQUAL_INT_MESSAGE(1, print_count,
                                 "Expected 1 print instruction in bytecode");
@@ -416,5 +418,3 @@ void TestNestedWhileLoops() {
 
   RunVm();
 }
-
-
