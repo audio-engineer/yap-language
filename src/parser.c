@@ -867,6 +867,8 @@ static void ParseForStatement() {
   size_t pending_condition_slot = 0;
   size_t loop_start_address = 0;
   size_t loop_exit_address = 0;
+  size_t increment_start_address = 0;
+  char identifier_name[kIdentifierNameLength];
 
   if (!ExpectToken(1, kTokenLeftParenthesis)) {
     return;
@@ -874,7 +876,6 @@ static void ParseForStatement() {
 
   // Parse variable declaration
   // initializer example: i: int = 0
-  char identifier_name[kIdentifierNameLength];
   ExtractIdentifierName(identifier_name);
 
   if (!ExpectToken(1, kTokenIdentifier)) {
@@ -909,7 +910,7 @@ static void ParseForStatement() {
   }
 
   // Store increment start location
-  size_t increment_start_address = instruction_address;
+  increment_start_address = instruction_address;
 
   // Parse increment
   // increment example: i = i + 1
