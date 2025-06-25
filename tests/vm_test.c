@@ -357,7 +357,8 @@ void TestForLoopExecutesThreeTimes(void) {
   TEST_ASSERT_TRUE_MESSAGE(saw_jump_if_false,
                            "Missing kOpJumpIfFalse for for-loop condition");
   TEST_ASSERT_TRUE_MESSAGE(jump_count >= 2,
-                           "Expected at least two kOpJump instructions (one to body, one to increment)");
+                           "Expected at least two kOpJump instructions (one to "
+                           "body, one to increment)");
   TEST_ASSERT_EQUAL_INT_MESSAGE(1, print_count,
                                 "Expected 1 print instruction in bytecode");
 
