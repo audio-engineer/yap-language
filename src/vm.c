@@ -149,9 +149,9 @@ void EmitByte(const unsigned char byte) {
 }
 
 void EmitHalt() {
- /* if (kOpHalt != instructions[instruction_address - 1]) {
-    EmitByte(kOpHalt);
-  }*/
+  /* if (kOpHalt != instructions[instruction_address - 1]) {
+     EmitByte(kOpHalt);
+   }*/
   EmitByte(kOpHalt);
 }
 

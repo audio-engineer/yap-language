@@ -938,7 +938,7 @@ static void ParseForStatement() {
 
   // Parse loop body
   while (token.type != kTokenEndfor && token.type != kTokenEof) {
-    ParseStatement(); // Body example: print(i)
+    ParseStatement();  // Body example: print(i)
   }
 
   // Jump from body to increment
