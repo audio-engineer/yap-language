@@ -32,8 +32,7 @@ void Example9();
 void Example10();
 
 // Loops
-// void TestForLoopExecutesThreeTimes();
-
+void TestForLoopExecutesThreeTimes(void);
 void TestWhileLoopExecutesThreeTimes();
 void TestNestedWhileLoops();
 
